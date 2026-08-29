@@ -1,0 +1,164 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://dxqtbwwkjjsdlpfnkiem.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "lens-master-luxury",
+      "version": "0.1.0",
+      "title": "Lens Master Luxury"
+    },
+    "tools": [
+      {
+        "name": "search_products",
+        "title": "Search eyewear products",
+        "description": "Search the Lens Master catalogue (frames, sunglasses, blue-cut and contact lenses) by keyword, brand, tag or product type. Returns titles, handles, prices and stock state.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "description": "Keyword, brand or product type to search for."
+            },
+            "limit": {
+              "description": "Maximum products to return (default 10).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_products",
+        "title": "List catalogue products",
+        "description": "List Lens Master products from Shopify, most recently updated first. Use for browsing the catalogue when no search term is known.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "How many products to return (default 20).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            },
+            "cursor": {
+              "description": "Pagination cursor returned by a previous call.",
+              "type": "string",
+              "maxLength": 500
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_product",
+        "title": "Get product details",
+        "description": "Fetch one Lens Master product by handle or Shopify product ID, including description, images, lens/frame metafields, variants, SKUs, prices and live stock.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "handle": {
+              "description": "Product handle, e.g. skyline-aviator.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "productId": {
+              "description": "Shopify product ID or GID.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_collections",
+        "title": "List collections",
+        "description": "List Lens Master Shopify collections (e.g. Blue Cut, Sunglasses) with handles and product counts.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "How many collections to return (default 50).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "check_availability",
+        "title": "Check variant availability",
+        "description": "Check live Shopify stock and price for one or more product variants before recommending or ordering them.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "variantIds": {
+              "minItems": 1,
+              "maxItems": 25,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "description": "Shopify variant IDs or GIDs."
+            }
+          },
+          "required": [
+            "variantIds"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
