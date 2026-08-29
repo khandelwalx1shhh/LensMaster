@@ -9,6 +9,7 @@ import {
   isHighPowerRx,
   isBlueCutOfferProduct,
   BLUE_CUT_HIGH_POWER_SINGLE_PRICE,
+  BLUE_CUT_HIGH_POWER_BUNDLE_PRICE,
   BLUE_CUT_HIGH_POWER_THRESHOLD,
   formatPrice,
   type ShopifyProduct,
@@ -591,7 +592,7 @@ export function LensSelectionDialog({ open, onOpenChange, product, variant, edit
                   </span>{" "}
                   <span className="text-muted-foreground">
                     priced at {formatPrice(BLUE_CUT_HIGH_POWER_SINGLE_PRICE, variant.price.currencyCode)} per piece ·{" "}
-                    {formatPrice(1600, variant.price.currencyCode)} for a pair.
+                    {formatPrice(BLUE_CUT_HIGH_POWER_BUNDLE_PRICE, variant.price.currencyCode)} for a pair.
                   </span>
                 </div>
               )}

@@ -2,7 +2,7 @@ import { X, ArrowUpDown, SlidersHorizontal, ChevronDown, Check } from "lucide-re
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { fetchProducts, type ShopifyProduct } from "@/lib/shopify";
+import { fetchProducts, isHouseBrand, type ShopifyProduct } from "@/lib/shopify";
 
 export type SortKey = "featured" | "price-asc" | "price-desc" | "name-asc" | "name-desc";
 export type Category = "" | "sunglasses" | "contacts" | "blue-light" | "kids" | "sports" | "prescription";
@@ -80,7 +80,7 @@ export function ShopFilters({ filters, onChange }: Props) {
     const set = new Set<string>();
     for (const p of allProducts) {
       const v = (p.node.vendor ?? "").trim();
-      if (v) set.add(v);
+      if (v && !isHouseBrand(v)) set.add(v);
     }
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [allProducts]);
@@ -256,8 +256,15 @@ const LENS_TYPE_MATCHERS: Record<string, (hay: string) => boolean> = {
   accessories: (h) => /solution|case|accessor|tweez|drops/.test(h),
 };
 
-export function applyFilters(products: ShopifyProduct[], f: Filters): ShopifyProduct[] {
+export function applyFilters(
+  products: ShopifyProduct[],
+  f: Filters,
+  options?: { excludeHouseBrands?: boolean },
+): ShopifyProduct[] {
   const filtered = products.filter((p) => {
+    if (options?.excludeHouseBrands && isHouseBrand(p.node.vendor)) {
+      return false;
+    }
     const hay = `${p.node.title} ${p.node.productType ?? ""} ${p.node.vendor ?? ""} ${p.node.tags.join(" ")}`.toLowerCase();
     if (f.category) {
       const match = CATEGORY_MATCHERS[f.category];

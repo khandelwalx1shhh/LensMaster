@@ -3,7 +3,13 @@ import { useEffect, useState } from "react";
 import { ProductGrid } from "@/components/site/ProductGrid";
 import { ShopFilters, DEFAULT_FILTERS, type Filters, type Category } from "@/components/site/ShopFilters";
 import { ArrowUpRight, Tag } from "lucide-react";
-import { BLUE_CUT_SINGLE_PRICE, BLUE_CUT_BUNDLE_PRICE, formatPrice } from "@/lib/shopify";
+import {
+  BLUE_CUT_SINGLE_PRICE,
+  BLUE_CUT_BUNDLE_PRICE,
+  BLUE_CUT_HIGH_POWER_SINGLE_PRICE,
+  BLUE_CUT_HIGH_POWER_BUNDLE_PRICE,
+  formatPrice,
+} from "@/lib/shopify";
 
 const VALID_CATEGORIES: Category[] = ["", "sunglasses", "contacts", "blue-light", "kids", "sports", "prescription"];
 
@@ -82,7 +88,7 @@ function Shop() {
               </h2>
               <p className="text-sm text-background/70 max-w-md">
                 Add any two frames from this collection and the discount is applied automatically at checkout.
-                Power above ±4.00: {formatPrice(1600)}.
+                Power above ±4.00: 1 @ {formatPrice(BLUE_CUT_HIGH_POWER_SINGLE_PRICE)} · 2 @ {formatPrice(BLUE_CUT_HIGH_POWER_BUNDLE_PRICE)}.
               </p>
             </div>
             <Link

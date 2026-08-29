@@ -8,7 +8,7 @@
  * subtract from it).
  */
 const BLUE_CUT_OFFER_TAG = "blue-cut-offer";
-const BLUE_CUT_BUNDLE_DISCOUNT = 500;
+const BLUE_CUT_BUNDLE_DISCOUNT = 499;
 export const DELIVERY_FEE = 99;
 
 export interface PricedLineInput {

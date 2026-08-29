@@ -86,11 +86,11 @@ function Home() {
               >
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3 py-2 text-white backdrop-blur-sm transition group-hover:bg-black/60 group-hover:border-white/30">
                   <span className="inline-flex shrink-0 items-center rounded-full bg-gold/90 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-black uppercase">Offer</span>
-                  <p className="text-xs sm:text-sm font-medium leading-snug">2 glasses with Blue Cut lenses @ ₹1,200</p>
+                  <p className="text-xs sm:text-sm font-medium leading-snug">2 glasses with Blue Cut lenses @ ₹1,199</p>
                 </div>
               </Link>
               <p className="mt-1.5 text-[10px] leading-relaxed text-white/50">
-                Power above ±4.00: ₹1,600 · T&C apply
+                1 @ ₹849 · Power above ±4.00: 1 @ ₹1,049 (2 @ ₹1,599) · T&C apply
               </p>
 
               <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 animate-in slide-in-from-bottom-4 duration-700 delay-300">

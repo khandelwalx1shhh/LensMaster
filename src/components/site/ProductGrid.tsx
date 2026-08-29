@@ -9,9 +9,10 @@ interface Props {
   first?: number;
   query?: string;
   filters?: Filters;
+  excludeHouseBrands?: boolean;
 }
 
-export function ProductGrid({ first = 12, query, filters }: Props) {
+export function ProductGrid({ first = 12, query, filters, excludeHouseBrands }: Props) {
   const { data: products = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["products", first, query ?? null],
     queryFn: () => fetchProducts(first, query),
@@ -39,7 +40,11 @@ export function ProductGrid({ first = 12, query, filters }: Props) {
     );
   }
 
-  const filtered = filters ? applyFilters(products, filters) : products;
+  const filtered = filters
+    ? applyFilters(products, filters, { excludeHouseBrands })
+    : excludeHouseBrands
+      ? products.filter((p) => !applyFilters([p], { ...filters } as Filters, { excludeHouseBrands }).length)
+      : products;
 
 
   if (!filtered.length) {

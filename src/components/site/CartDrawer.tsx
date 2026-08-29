@@ -8,6 +8,7 @@ import {
   formatPrice,
   calculateBlueCutBundle,
   BLUE_CUT_BUNDLE_PRICE,
+  BLUE_CUT_BUNDLE_DISCOUNT,
   isBlueCutOfferProduct,
   getProductCategory,
   requiresPrescription,
@@ -29,7 +30,7 @@ export function CartDrawer() {
 
   // Nudge: one more Blue Cut item unlocks the bundle
   const offerQtyIsOdd = bundle.offerQty % 2 === 1;
-  const nudgeSavings = BLUE_CUT_BUNDLE_PRICE > 0 ? 500 : 0;
+  const nudgeSavings = BLUE_CUT_BUNDLE_PRICE > 0 ? BLUE_CUT_BUNDLE_DISCOUNT : 0;
 
   const checkout = () => {
     setOpen(false);

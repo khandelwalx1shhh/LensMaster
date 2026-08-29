@@ -126,16 +126,37 @@ export function formatPrice(amount: string | number, currencyCode = "INR") {
   }
 }
 
+/* ---------------------------------------------------- brand helpers */
+
+export function isHouseBrand(vendor?: string | null): boolean {
+  if (!vendor) return true;
+  const v = vendor.trim().toLowerCase();
+  if (!v) return true;
+  if (
+    v.includes("lens master") ||
+    v.includes("lensmaster") ||
+    v.includes("the swadesh") ||
+    v.includes("swadesh") ||
+    v === "in-house" ||
+    v === "in house" ||
+    v === "generic" ||
+    v === "default"
+  ) {
+    return true;
+  }
+  return false;
+}
+
 /* ---------------------------------------------------- blue cut offer */
 
 export const BLUE_CUT_OFFER_TAG = "blue-cut-offer";
 export const BLUE_CUT_DISCOUNT_CODE = "BLUECUT2";
-export const BLUE_CUT_SINGLE_PRICE = 850;
-export const BLUE_CUT_BUNDLE_PRICE = 1200;
-export const BLUE_CUT_HIGH_POWER_SINGLE_PRICE = 1050;
-export const BLUE_CUT_HIGH_POWER_BUNDLE_PRICE = 1600;
+export const BLUE_CUT_SINGLE_PRICE = 849;
+export const BLUE_CUT_BUNDLE_PRICE = 1199;
+export const BLUE_CUT_HIGH_POWER_SINGLE_PRICE = 1049;
+export const BLUE_CUT_HIGH_POWER_BUNDLE_PRICE = 1599;
 export const BLUE_CUT_HIGH_POWER_THRESHOLD = 4;
-export const BLUE_CUT_BUNDLE_DISCOUNT = BLUE_CUT_SINGLE_PRICE * 2 - BLUE_CUT_BUNDLE_PRICE; // 500
+export const BLUE_CUT_BUNDLE_DISCOUNT = BLUE_CUT_SINGLE_PRICE * 2 - BLUE_CUT_BUNDLE_PRICE; // 499
 
 export function isHighPowerRx(
   eyes: Array<Record<string, string | undefined>>,

@@ -37,7 +37,7 @@ function Brands() {
 
       <div className="mt-8 sm:mt-12">
         <ShopFilters filters={filters} onChange={setFilters} />
-        <ProductGrid first={48} filters={filters} />
+        <ProductGrid first={48} filters={filters} excludeHouseBrands={true} />
       </div>
 
     </div>
