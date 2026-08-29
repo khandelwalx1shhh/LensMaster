@@ -30,6 +30,8 @@ import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin/reset-password'
 import { Route as AdminSecurityRouteImport } from './routes/admin/security'
 import { Route as AdminStaffRouteImport } from './routes/admin/staff'
+import { Route as ApiCreateOrderRouteImport } from './routes/api/create-order'
+import { Route as ApiVerifyPaymentRouteImport } from './routes/api/verify-payment'
 import { Route as ProductHandleRouteImport } from './routes/product.$handle'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -149,6 +151,16 @@ const AdminStaffRoute = AdminStaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const ApiCreateOrderRoute = ApiCreateOrderRouteImport.update({
+  id: '/api/create-order',
+  path: '/api/create-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVerifyPaymentRoute = ApiVerifyPaymentRouteImport.update({
+  id: '/api/verify-payment',
+  path: '/api/verify-payment',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductHandleRoute = ProductHandleRouteImport.update({
   id: '/product/$handle',
   path: '/product/$handle',
@@ -229,6 +241,8 @@ export interface FileRoutesByFullPath {
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/staff': typeof AdminStaffRoute
+  '/api/create-order': typeof ApiCreateOrderRoute
+  '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/product/$handle': typeof ProductHandleRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -263,6 +277,8 @@ export interface FileRoutesByTo {
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/staff': typeof AdminStaffRoute
+  '/api/create-order': typeof ApiCreateOrderRoute
+  '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/product/$handle': typeof ProductHandleRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -298,6 +314,8 @@ export interface FileRoutesById {
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/staff': typeof AdminStaffRoute
+  '/api/create-order': typeof ApiCreateOrderRoute
+  '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/product/$handle': typeof ProductHandleRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -334,6 +352,8 @@ export interface FileRouteTypes {
     | '/admin/reset-password'
     | '/admin/security'
     | '/admin/staff'
+    | '/api/create-order'
+    | '/api/verify-payment'
     | '/product/$handle'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -368,6 +388,8 @@ export interface FileRouteTypes {
     | '/admin/reset-password'
     | '/admin/security'
     | '/admin/staff'
+    | '/api/create-order'
+    | '/api/verify-payment'
     | '/product/$handle'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -402,6 +424,8 @@ export interface FileRouteTypes {
     | '/admin/reset-password'
     | '/admin/security'
     | '/admin/staff'
+    | '/api/create-order'
+    | '/api/verify-payment'
     | '/product/$handle'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -428,6 +452,8 @@ export interface RootRouteChildren {
   StoresRoute: typeof StoresRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ApiCreateOrderRoute: typeof ApiCreateOrderRoute
+  ApiVerifyPaymentRoute: typeof ApiVerifyPaymentRoute
   ProductHandleRoute: typeof ProductHandleRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -590,6 +616,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStaffRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/api/create-order': {
+      id: '/api/create-order'
+      path: '/api/create-order'
+      fullPath: '/api/create-order'
+      preLoaderRoute: typeof ApiCreateOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/verify-payment': {
+      id: '/api/verify-payment'
+      path: '/api/verify-payment'
+      fullPath: '/api/verify-payment'
+      preLoaderRoute: typeof ApiVerifyPaymentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/product/$handle': {
       id: '/product/$handle'
       path: '/product/$handle'
@@ -712,6 +752,8 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ApiCreateOrderRoute: ApiCreateOrderRoute,
+  ApiVerifyPaymentRoute: ApiVerifyPaymentRoute,
   ProductHandleRoute: ProductHandleRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,

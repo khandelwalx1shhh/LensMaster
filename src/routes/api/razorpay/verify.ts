@@ -54,8 +54,7 @@ export const Route = createFileRoute("/api/razorpay/verify")({
           paymentId: parsed.razorpay_payment_id,
           persisted,
         });
-        // Payment is genuine either way; the webhook reconciles a failed write.
-        return Response.json({ verified: true, persisted });
+        return Response.json({ success: true, verified: true, persisted });
 
       },
     },

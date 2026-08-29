@@ -247,9 +247,11 @@ export const Route = createFileRoute("/api/razorpay/order")({
         }
 
         return Response.json({
+          order_id: razorpayOrderId,
           orderId: razorpayOrderId,
           receipt,
           keyId: config.keyId,
+          key_id: config.keyId,
           amount: priced.total,
           currency: "INR",
         });

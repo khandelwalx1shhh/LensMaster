@@ -183,13 +183,22 @@ function CheckoutPage() {
 
       if (!res.ok) throw new Error("ORDER_FAILED");
       const data = (await res.json()) as {
-        orderId: string;
+        orderId?: string;
+        order_id?: string;
         receipt: string;
-        keyId: string;
+        keyId?: string;
+        key_id?: string;
         amount: number;
         currency: string;
       };
-      if (!data.orderId || !data.keyId) throw new Error("ORDER_FAILED");
+      const razorpayOrderId = data.order_id || data.orderId;
+      const razorpayKey =
+        data.key_id ||
+        data.keyId ||
+        (import.meta.env.VITE_RAZORPAY_KEY_ID as string) ||
+        "";
+
+      if (!razorpayOrderId || !razorpayKey) throw new Error("ORDER_FAILED");
 
       const ready = await loadRazorpay();
       if (!ready) throw new Error("SDK_FAILED");
@@ -200,14 +209,20 @@ function CheckoutPage() {
         /* storage may be unavailable — not critical */
       }
 
-      const RazorpayCtor = (window as unknown as { Razorpay: new (o: unknown) => { open: () => void } })
-        .Razorpay;
+      const RazorpayCtor = (
+        window as unknown as {
+          Razorpay: new (o: unknown) => {
+            open: () => void;
+            on: (event: string, handler: (response: any) => void) => void;
+          };
+        }
+      ).Razorpay;
 
       const rzp = new RazorpayCtor({
-        key: data.keyId,
-        order_id: data.orderId,
+        key: razorpayKey,
+        order_id: razorpayOrderId,
         amount: Math.round(data.amount * 100),
-        currency: data.currency,
+        currency: data.currency || "INR",
         name: "Lens Master",
         description: `Order ${data.receipt}`,
         prefill: {
@@ -218,7 +233,12 @@ function CheckoutPage() {
         notes: { receipt: data.receipt },
         theme: { color: "#D4AF37" },
         modal: {
-          ondismiss: () => setSubmitting(false),
+          ondismiss: () => {
+            setSubmitting(false);
+            toast.info("Payment cancelled", {
+              description: "You can retry checkout whenever you are ready.",
+            });
+          },
         },
         handler: async (response: {
           razorpay_order_id: string;
@@ -226,23 +246,49 @@ function CheckoutPage() {
           razorpay_signature: string;
         }) => {
           try {
-            const verifyRes = await fetch("/api/razorpay/verify", {
+            const verifyRes = await fetch("/api/verify-payment", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(response),
             });
-            const verifyJson = (await verifyRes.json()) as { verified?: boolean };
+            const verifyJson = (await verifyRes.json()) as {
+              verified?: boolean;
+              success?: boolean;
+            };
+            const isVerified = Boolean(verifyJson.verified || verifyJson.success);
             const query = new URLSearchParams({
-              status: verifyJson.verified ? "TXN_SUCCESS" : "INVALID",
+              status: isVerified ? "TXN_SUCCESS" : "INVALID",
               orderId: data.receipt,
               txnId: response.razorpay_payment_id,
               amount: String(data.amount),
             });
             window.location.assign(`/order-status?${query.toString()}`);
-          } catch {
-            window.location.assign(`/order-status?status=UNKNOWN&orderId=${data.receipt}`);
+          } catch (err) {
+            console.error("[checkout] payment verification failed", err);
+            window.location.assign(
+              `/order-status?status=UNKNOWN&orderId=${data.receipt}&txnId=${response.razorpay_payment_id}`,
+            );
           }
         },
+      });
+
+      // Handle payment.failed event
+      rzp.on("payment.failed", (response: {
+        error?: {
+          code?: string;
+          description?: string;
+          source?: string;
+          step?: string;
+          reason?: string;
+        };
+      }) => {
+        console.error("[checkout] Razorpay payment failure:", response.error);
+        toast.error("Payment failed", {
+          description:
+            response.error?.description ||
+            "The payment could not be processed. Please try another method or retry.",
+        });
+        setSubmitting(false);
       });
 
       rzp.open();
