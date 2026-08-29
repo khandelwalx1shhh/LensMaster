@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useCartStore } from "@/stores/cartStore";
-import { formatPrice, calculateBlueCutBundle, isBlueCutOfferProduct } from "@/lib/shopify";
-import { checkoutSchema } from "@/lib/validation";
+import {
+  formatPrice,
+  calculateBlueCutBundle,
+  isBlueCutOfferProduct,
+  BLUE_CUT_BUNDLE_DISCOUNT,
+} from "@/lib/shopify";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -401,32 +404,86 @@ function CheckoutPage() {
           </h2>
 
           <ul className="mt-4 space-y-3">
-            {items.map((item) => (
-              <li key={item.lineId ?? item.variantId} className="flex items-start justify-between gap-3 text-[13px]">
-                <span className="min-w-0">
-                  <span className="block truncate">{item.product.node.title}</span>
-                  <span className="text-muted-foreground">Qty {item.quantity}</span>
-                </span>
-                <span className="tabular-nums shrink-0">
-                  {formatPrice(parseFloat(item.price.amount) * item.quantity, currency)}
-                </span>
-              </li>
-            ))}
+            {items.map((item) => {
+              const isOffer = isBlueCutOfferProduct(item.product.node);
+              const lineTotal = parseFloat(item.price.amount) * item.quantity;
+              const hasPairDiscount = isOffer && item.quantity >= 2;
+              const pairDiscount = hasPairDiscount
+                ? Math.floor(item.quantity / 2) * BLUE_CUT_BUNDLE_DISCOUNT
+                : 0;
+
+              return (
+                <li
+                  key={item.lineId ?? item.variantId}
+                  className="flex items-start justify-between gap-3 text-[13px]"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">{item.product.node.title}</span>
+                    <span className="text-muted-foreground text-xs">Qty {item.quantity}</span>
+                    {isOffer && (
+                      <span className="block text-[10px] uppercase font-semibold text-gold tracking-wider mt-0.5">
+                        ✨ Blue Cut Offer
+                      </span>
+                    )}
+                  </span>
+                  <span className="tabular-nums shrink-0 text-right">
+                    {hasPairDiscount ? (
+                      <div>
+                        <span className="block text-[11px] text-muted-foreground line-through">
+                          {formatPrice(lineTotal, currency)}
+                        </span>
+                        <span className="font-semibold text-gold">
+                          {formatPrice(lineTotal - pairDiscount, currency)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span>{formatPrice(lineTotal, currency)}</span>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
 
           <div className="mt-5 space-y-1.5 border-t pt-4 text-[13px]">
-            <Row label="Subtotal" value={formatPrice(subtotal, currency)} />
             {bundle.eligibleForBundle && (
-              <Row label="Blue Cut Bundle" value={`− ${formatPrice(bundle.bundleDiscount, currency)}`} gold />
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>Original Subtotal</span>
+                <span className="tabular-nums line-through">{formatPrice(subtotal, currency)}</span>
+              </div>
+            )}
+            <Row label="Subtotal" value={formatPrice(bundle.finalTotal, currency)} />
+            {bundle.eligibleForBundle && (
+              <Row
+                label="Blue Cut Pair Discount"
+                value={`− ${formatPrice(bundle.bundleDiscount, currency)}`}
+                gold
+              />
             )}
             <Row label="Delivery" value={formatPrice(DELIVERY_FEE, currency)} />
           </div>
 
           <div className="mt-4 flex items-end justify-between border-t pt-4">
-            <span className="text-[12px] uppercase tracking-wider text-muted-foreground">Total</span>
-            <span className="font-display text-2xl tabular-nums leading-none">
-              {formatPrice(total, currency)}
-            </span>
+            <div>
+              <span className="text-[12px] uppercase tracking-wider text-muted-foreground block">
+                Total
+              </span>
+              {bundle.eligibleForBundle && (
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">
+                  You save {formatPrice(bundle.bundleDiscount, currency)}!
+                </span>
+              )}
+            </div>
+            <div className="text-right">
+              {bundle.eligibleForBundle && (
+                <div className="text-xs text-muted-foreground line-through tabular-nums mb-0.5">
+                  {formatPrice(subtotal + DELIVERY_FEE, currency)}
+                </div>
+              )}
+              <span className="font-display text-2xl tabular-nums leading-none">
+                {formatPrice(total, currency)}
+              </span>
+            </div>
           </div>
 
           <Button onClick={pay} disabled={submitting} className="mt-5 w-full h-12 rounded-full text-[14px]">

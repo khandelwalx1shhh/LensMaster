@@ -154,9 +154,28 @@ export function CartDrawer() {
                               </span>
                             )}
                           </div>
-                          <p className="text-[14px] font-medium tabular-nums whitespace-nowrap">
-                            {formatPrice(lineTotal, item.price.currencyCode)}
-                          </p>
+                          <div className="text-right whitespace-nowrap shrink-0">
+                            {isOffer && item.quantity >= 2 ? (
+                              <div>
+                                <p className="text-[11px] text-muted-foreground line-through tabular-nums">
+                                  {formatPrice(lineTotal, item.price.currencyCode)}
+                                </p>
+                                <p className="text-[14px] font-semibold text-gold tabular-nums">
+                                  {formatPrice(
+                                    lineTotal - Math.floor(item.quantity / 2) * BLUE_CUT_BUNDLE_DISCOUNT,
+                                    item.price.currencyCode,
+                                  )}
+                                </p>
+                                <span className="inline-block mt-0.5 text-[9px] font-semibold tracking-wider uppercase bg-gold/15 text-gold px-1.5 py-0.5 rounded">
+                                  Offer Applied
+                                </span>
+                              </div>
+                            ) : (
+                              <p className="text-[14px] font-medium tabular-nums whitespace-nowrap">
+                                {formatPrice(lineTotal, item.price.currencyCode)}
+                              </p>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex items-center justify-between mt-auto pt-3">
@@ -209,17 +228,29 @@ export function CartDrawer() {
             {/* Summary + checkout */}
             <div className="border-t bg-background px-5 pt-4 pb-5 space-y-3">
               <div className="space-y-1.5">
+                {bundle.eligibleForBundle && (
+                  <div className="flex items-center justify-between text-[13px]">
+                    <span className="text-muted-foreground">Original Subtotal</span>
+                    <span className="tabular-nums text-muted-foreground line-through">
+                      {formatPrice(displaySubtotal, currency)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-[13px]">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="tabular-nums">{formatPrice(displaySubtotal, currency)}</span>
+                  <span className="tabular-nums font-medium">
+                    {formatPrice(bundle.finalTotal, currency)}
+                  </span>
                 </div>
                 {bundle.eligibleForBundle && (
                   <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-gold flex items-center gap-1.5">
+                    <span className="text-gold flex items-center gap-1.5 font-medium">
                       <Sparkles className="h-3 w-3" strokeWidth={2} />
-                      Blue Cut Bundle
+                      Blue Cut Pair Discount
                     </span>
-                    <span className="tabular-nums text-gold">− {formatPrice(bundle.bundleDiscount, currency)}</span>
+                    <span className="tabular-nums text-gold font-medium">
+                      − {formatPrice(bundle.bundleDiscount, currency)}
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between text-[13px]">
@@ -229,13 +260,27 @@ export function CartDrawer() {
               </div>
 
               <div className="flex items-end justify-between pt-3 border-t">
-                <span className="text-[13px] uppercase tracking-wider text-muted-foreground">Total</span>
+                <div>
+                  <span className="text-[13px] uppercase tracking-wider text-muted-foreground block">
+                    Total
+                  </span>
+                  {bundle.eligibleForBundle && (
+                    <span className="text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
+                      You save {formatPrice(bundle.bundleDiscount, currency)}!
+                    </span>
+                  )}
+                </div>
                 <div className="text-right">
+                  {bundle.eligibleForBundle && (
+                    <div className="text-xs text-muted-foreground line-through tabular-nums mb-0.5">
+                      {formatPrice(displaySubtotal + 99, currency)}
+                    </div>
+                  )}
                   <div className="font-display text-2xl tabular-nums leading-none">
                     {formatPrice(bundle.finalTotal + 99, currency)}
                   </div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">
-                    Incl. of all taxes & ₹99 delivery
+                    Incl. of all taxes &amp; ₹99 delivery
                   </div>
                 </div>
               </div>
