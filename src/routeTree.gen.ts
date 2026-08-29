@@ -16,9 +16,11 @@ import { Route as BrandsRouteImport } from './routes/brands'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as OrderStatusRouteImport } from './routes/order-status'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StoresRouteImport } from './routes/stores'
+import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-conditions'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AdminAccountRouteImport } from './routes/admin/account'
@@ -79,6 +81,11 @@ const OrderStatusRoute = OrderStatusRouteImport.update({
   path: '/order-status',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -92,6 +99,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const StoresRoute = StoresRouteImport.update({
   id: '/stores',
   path: '/stores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
+  id: '/terms-and-conditions',
+  path: '/terms-and-conditions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93ListToolsRoute =
@@ -227,9 +239,11 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/mcp': typeof McpRoute
   '/order-status': typeof OrderStatusRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stores': typeof StoresRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/account': typeof AdminAccountRoute
@@ -263,9 +277,11 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/mcp': typeof McpRoute
   '/order-status': typeof OrderStatusRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stores': typeof StoresRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/account': typeof AdminAccountRoute
@@ -300,9 +316,11 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/mcp': typeof McpRoute
   '/order-status': typeof OrderStatusRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stores': typeof StoresRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/account': typeof AdminAccountRoute
@@ -338,9 +356,11 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/mcp'
     | '/order-status'
+    | '/privacy-policy'
     | '/shop'
     | '/sitemap.xml'
     | '/stores'
+    | '/terms-and-conditions'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin/account'
@@ -374,9 +394,11 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/mcp'
     | '/order-status'
+    | '/privacy-policy'
     | '/shop'
     | '/sitemap.xml'
     | '/stores'
+    | '/terms-and-conditions'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin/account'
@@ -410,9 +432,11 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/mcp'
     | '/order-status'
+    | '/privacy-policy'
     | '/shop'
     | '/sitemap.xml'
     | '/stores'
+    | '/terms-and-conditions'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin/account'
@@ -447,9 +471,11 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   McpRoute: typeof McpRoute
   OrderStatusRoute: typeof OrderStatusRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ShopRoute: typeof ShopRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StoresRoute: typeof StoresRoute
+  TermsAndConditionsRoute: typeof TermsAndConditionsRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiCreateOrderRoute: typeof ApiCreateOrderRoute
@@ -518,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrderStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -537,6 +570,13 @@ declare module '@tanstack/react-router' {
       path: '/stores'
       fullPath: '/stores'
       preLoaderRoute: typeof StoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms-and-conditions': {
+      id: '/terms-and-conditions'
+      path: '/terms-and-conditions'
+      fullPath: '/terms-and-conditions'
+      preLoaderRoute: typeof TermsAndConditionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -746,9 +786,11 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   McpRoute: McpRoute,
   OrderStatusRoute: OrderStatusRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   ShopRoute: ShopRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StoresRoute: StoresRoute,
+  TermsAndConditionsRoute: TermsAndConditionsRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
