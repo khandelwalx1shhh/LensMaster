@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Loader2, Truck, ShieldCheck, RotateCcw } from "lucide-react";
+import { ChevronLeft, Loader2, Truck, ShieldCheck } from "lucide-react";
 import {
   discountPercent,
   fetchProductByHandle,
@@ -248,12 +248,12 @@ function ProductPage() {
               <div><span className="font-medium">Flat ₹99 delivery</span> across India — fast & tracked</div>
             </div>
             <div className="flex items-start gap-3">
-              <RotateCcw className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-              <div><span className="font-medium">7-day returns</span> on unused frames in original packaging</div>
+              <ShieldCheck className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+              <div><span className="font-medium">Quality inspected</span> — precision power fitted by certified opticians</div>
             </div>
             <div className="flex items-start gap-3">
               <ShieldCheck className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-              <div><span className="font-medium">Authenticity guaranteed</span> — sourced directly from brands</div>
+              <div><span className="font-medium">Authenticity guaranteed</span> — 100% genuine luxury optical wear</div>
             </div>
           </div>
         </div>
