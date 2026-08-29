@@ -5,12 +5,12 @@ import {
   createRootRouteWithContext,
   useRouter,
   useRouterState,
-
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "sonner";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -86,7 +86,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#111111" },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
       { name: "author", content: "Lens Master by The Swadesh" },
-      { name: "keywords", content: "eyewear jaipur, optical store jaipur, ray-ban jaipur, gucci glasses, prescription glasses, sunglasses, blue light glasses, contact lenses, lens master, opticians jaipur, spectacles jaipur" },
+      {
+        name: "keywords",
+        content:
+          "eyewear jaipur, optical store jaipur, ray-ban jaipur, gucci glasses, prescription glasses, sunglasses, blue light glasses, contact lenses, lens master, opticians jaipur, spectacles jaipur",
+      },
       { name: "geo.region", content: "IN-RJ" },
       { name: "geo.placename", content: "Jaipur" },
       { property: "og:site_name", content: "Lens Master" },
@@ -122,8 +126,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           },
           geo: { "@type": "GeoCoordinates", latitude: 26.8824981, longitude: 75.8000534 },
           openingHoursSpecification: [
-            { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], opens: "10:30", closes: "21:00" },
-            { "@type": "OpeningHoursSpecification", dayOfWeek: "Sunday", opens: "10:30", closes: "19:00" },
+            {
+              "@type": "OpeningHoursSpecification",
+              dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+              opens: "10:30",
+              closes: "21:00",
+            },
+            {
+              "@type": "OpeningHoursSpecification",
+              dayOfWeek: "Sunday",
+              opens: "10:30",
+              closes: "19:00",
+            },
           ],
           aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "700" },
           sameAs: [],
@@ -146,6 +160,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <body>
         {children}
         <Scripts />
+        <SpeedInsights />
       </body>
     </html>
   );
@@ -178,7 +193,6 @@ function AppFrame() {
     </>
   );
 }
-
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
