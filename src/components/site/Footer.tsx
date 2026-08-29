@@ -14,7 +14,7 @@ export function Footer() {
               </span>
             </div>
             <p className="mt-2 max-w-xs text-[11px] sm:text-xs text-background/60 leading-relaxed">
-              Premium frames. Precision lenses. Jaipur's flagship luxury optical store since 1997.
+              Premium frames. Precision lenses. Jaipur's flagship luxury optical store since 2023.
             </p>
             <div className="mt-3 space-y-1.5 text-[11px] sm:text-xs text-background/70">
               <div className="flex items-start gap-1.5">

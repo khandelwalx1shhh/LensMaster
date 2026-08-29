@@ -4,9 +4,9 @@ export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
       { title: "About Lens Master — Jaipur's Premium Optical Store" },
-      { name: "description", content: "Lens Master by The Swadesh is Jaipur's flagship luxury optical store — premium frames, precision lenses, and professional eye care since 1997." },
+      { name: "description", content: "Lens Master by The Swadesh is Jaipur's flagship luxury optical store — premium frames, precision lenses, and professional eye care since 2023." },
       { property: "og:title", content: "About Lens Master — Jaipur's Premium Optical Store" },
-      { property: "og:description", content: "Craftsmanship, precision, and personal service since 1997." },
+      { property: "og:description", content: "Craftsmanship, precision, and personal service since 2023." },
       { property: "og:url", content: "/about" },
     ],
     links: [{ rel: "canonical", href: "/about" }],
