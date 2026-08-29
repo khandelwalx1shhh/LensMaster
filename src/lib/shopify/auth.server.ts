@@ -1,15 +1,9 @@
 /**
- * Shopify Dev Dashboard app authentication — server only.
+ * Shopify Admin API authentication — server only.
  *
- * Modern (non-legacy-install) apps authenticate to the Admin API with the
- * OAuth 2.0 *client credentials* grant:
- *
- *   POST https://{shop}/admin/oauth/access_token
- *   { client_id, client_secret, grant_type: "client_credentials" }
- *   -> { access_token, expires_in }
- *
- * The returned token is short-lived, kept in server memory only, refreshed
- * before expiry, and NEVER logged or sent to the browser.
+ * Supports both:
+ * 1. Direct Admin API Access Token (shpat_... / Custom App) via LM_SHOPIFY_ACCESS_TOKEN
+ * 2. Modern OAuth 2.0 client_credentials grant via LM_SHOPIFY_CLIENT_ID + LM_SHOPIFY_CLIENT_SECRET
  */
 import { getShopifyConfig, ShopifyConfigError } from "./config.server";
 
@@ -34,8 +28,18 @@ export class ShopifyAuthError extends Error {
 }
 
 async function requestToken(): Promise<string> {
-  const { domain, clientId, clientSecret } = getShopifyConfig();
-  const url = `https://${domain}/admin/oauth/access_token`;
+  const config = getShopifyConfig();
+
+  // If a direct Admin API access token (e.g. shpat_...) is provided, use it directly.
+  if (config.accessToken) {
+    return config.accessToken;
+  }
+
+  if (!config.clientId || !config.clientSecret) {
+    throw new ShopifyAuthError("SHOPIFY_CREDENTIALS_MISSING");
+  }
+
+  const url = `https://${config.domain}/admin/oauth/access_token`;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), AUTH_TIMEOUT_MS);
@@ -46,8 +50,8 @@ async function requestToken(): Promise<string> {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
         grant_type: "client_credentials",
       }),
       signal: controller.signal,
@@ -62,7 +66,6 @@ async function requestToken(): Promise<string> {
   }
 
   if (!response.ok) {
-    // Body may echo the request; never log it verbatim.
     console.error(`[shopify-auth] authentication rejected with HTTP ${response.status}`);
     throw new ShopifyAuthError(
       response.status === 401 || response.status === 400
@@ -81,14 +84,21 @@ async function requestToken(): Promise<string> {
   }
 
   const ttlMs = payload.expires_in ? payload.expires_in * 1000 : TOKEN_TTL_FALLBACK_MS;
-  tokenCache.set(domain, { token: payload.access_token, expiresAt: Date.now() + ttlMs });
+  tokenCache.set(config.domain, { token: payload.access_token, expiresAt: Date.now() + ttlMs });
   console.info("[shopify-auth] Shopify authentication succeeded");
   return payload.access_token;
 }
 
 /** Returns a valid Admin API access token, refreshing it when needed. */
 export async function getAdminAccessToken(forceRefresh = false): Promise<string> {
-  const { domain } = getShopifyConfig();
+  const config = getShopifyConfig();
+
+  // If a direct token is provided, return it immediately without caching
+  if (config.accessToken) {
+    return config.accessToken;
+  }
+
+  const { domain } = config;
 
   if (!forceRefresh) {
     const cached = tokenCache.get(domain);
