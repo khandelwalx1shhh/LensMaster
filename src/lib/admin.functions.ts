@@ -19,8 +19,13 @@ import type {
 
 /** Load service-role Supabase client inside the handler (never at module scope). */
 async function adminDb() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return supabaseAdmin;
+  } catch {
+    const { createServiceClient } = await import("@/lib/supabase-service.server");
+    return createServiceClient();
+  }
 }
 
 /* ----------------------------------------------------------- products */
@@ -41,8 +46,8 @@ function mapOrderRow(
     prescription: prescriptions.get(item.id) ?? null,
   }));
 
-    const status: string = o.status ?? "pending";
-    const paymentStatus: string = o.payment_status ?? "pending";
+  const status: string = o.status ?? "pending";
+  const paymentStatus: string = o.payment_status ?? "pending";
 
   return {
     id: o.id,
@@ -79,20 +84,29 @@ export const getAdminStats = createServerFn({ method: "GET" }).handler(async () 
     const client = await adminDb();
 
     const { listProducts } = await import("./shopify/products.server");
-    const [shopifyProducts, { data: orders, count: orderCount }] = await Promise.all([
+    const [shopifyProducts, dbOrders] = await Promise.all([
       listProducts({ first: 250 }).catch((err) => {
         console.error("[admin] Shopify product count failed", err);
         return { products: [] as unknown[] };
       }),
-      client.from("orders").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(250),
+      client
+        ? client
+            .from("orders")
+            .select("*", { count: "exact" })
+            .order("created_at", { ascending: false })
+            .limit(250)
+            .catch(() => ({ data: null, count: 0 }))
+        : Promise.resolve({ data: null, count: 0 }),
     ]);
     const productCount = shopifyProducts.products.length;
+    const orders = dbOrders?.data ?? [];
+    const orderCount = dbOrders?.count ?? orders.length;
 
-    const paidOrders = (orders ?? []).filter((o) => o.payment_status === "paid");
+    const paidOrders = orders.filter((o) => o.payment_status === "paid");
     const revenue = paidOrders.reduce((sum, o) => sum + Number(o.total ?? 0), 0);
-    const customerEmails = new Set((orders ?? []).map((o) => o.customer_email).filter(Boolean));
+    const customerEmails = new Set(orders.map((o) => o.customer_email).filter(Boolean));
 
-    const recentOrders = (orders ?? []).slice(0, 5).map((o) => ({
+    const recentOrders = orders.slice(0, 5).map((o) => ({
       id: o.id,
       orderNumber: o.order_number ?? `#${o.id.slice(0, 8)}`,
       customerName: o.customer_name ?? "Guest",
@@ -158,13 +172,58 @@ export const getAdminOrders = createServerFn({ method: "GET" }).handler(async ()
   await requireAdmin("orders.view");
   try {
     const client = await adminDb();
+    if (!client) return [] as AdminOrderRow[];
+
     const { data: orders } = await client
       .from("orders")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(250);
 
-    if (!orders?.length) return [] as AdminOrderRow[];
+    if (!orders?.length) {
+      // Fallback: list orders from Shopify Admin API
+      try {
+        const { listOrders } = await import("./shopify/orders.server");
+        const shopifyRes = await listOrders({ first: 100 });
+        if (shopifyRes.orders && shopifyRes.orders.length > 0) {
+          return shopifyRes.orders.map((so: any): AdminOrderRow => ({
+            id: so.id.split("/").pop() ?? so.id,
+            orderNumber: so.name,
+            status: so.fulfillment_status === "FULFILLED" ? "delivered" : "processing",
+            paymentStatus: so.financial_status === "PAID" ? "paid" : "pending",
+            fulfillmentStatus: so.fulfillment_status ?? "UNFULFILLED",
+            financialStatus: so.financial_status ?? "PAID",
+            customerName: `${so.customer?.first_name || ""} ${so.customer?.last_name || ""}`.trim() || "Customer",
+            customerPhone: so.customer?.phone ?? null,
+            customerEmail: so.customer?.email ?? null,
+            address1: so.shipping_address?.address1 ?? "",
+            address2: so.shipping_address?.address2 ?? null,
+            city: so.shipping_address?.city ?? "",
+            state: so.shipping_address?.province ?? "",
+            pincode: so.shipping_address?.zip ?? "",
+            subtotal: Number(so.subtotal ?? 0),
+            deliveryFee: 99,
+            total: Number(so.total ?? 0),
+            lineItems: (so.line_items || []).map((li: any) => ({
+              id: String(li.id),
+              title: li.title,
+              variantTitle: li.variant_title ?? null,
+              quantity: li.quantity ?? 1,
+              price: Number(li.price ?? 0),
+              prescription: null,
+            })),
+            tags: so.tags ? so.tags.split(", ") : [],
+            note: so.note ?? null,
+            createdAt: so.processed_at || new Date().toISOString(),
+            updatedAt: so.processed_at || new Date().toISOString(),
+            processedAt: so.processed_at || new Date().toISOString(),
+          }));
+        }
+      } catch (shopifyErr) {
+        console.warn("[admin] Shopify fallback order fetch skipped", shopifyErr);
+      }
+      return [] as AdminOrderRow[];
+    }
 
     const orderIds = orders.map((o) => o.id);
     const { data: items } = await client
