@@ -63,20 +63,17 @@ export function formatCustomerOrderMessage(order: OrderNotificationData): string
     })
     .join("\n");
 
-  const trackingUrl = `${SITE_URL}/order-status?id=${encodeURIComponent(order.orderId)}`;
-
   return (
-    `👓 *Order Confirmed! — Lens Master by The Swadesh*\n\n` +
+    `👓 *Order Confirmed! — Lens Master*\n\n` +
     `Hello *${order.customerName}*,\n` +
-    `Thank you for your order! We have received your payment and our optical lab is preparing your eyewear.\n\n` +
+    `Thank you for your order! We have received your payment and our Lens Master team is preparing your eyewear.\n\n` +
     `📋 *Order Reference:* \`${order.orderNumber || order.orderId}\`\n` +
     `💰 *Amount Paid:* ₹${order.total.toLocaleString("en-IN")}\n\n` +
     `📦 *Items Ordered:*\n${itemsText}\n\n` +
     `📍 *Delivery Address:*\n${order.addressLine1}${order.addressLine2 ? `, ${order.addressLine2}` : ""}, ${order.city}, ${order.state} — ${order.pincode}\n\n` +
-    `🔍 *Track Live Status:*\n${trackingUrl}\n\n` +
     `💬 *Prescription or Questions?*\n` +
-    `Reply directly to this chat or call our Jaipur showroom at *${STORE_PHONE}*.\n\n` +
-    `_Lens Master — Jaipur's Premier Eyewear & Optics_`
+    `Reply directly to this chat or call Lens Master at *${STORE_PHONE}*.\n\n` +
+    `_Lens Master — Premium Eyewear_`
   );
 }
 

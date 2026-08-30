@@ -165,7 +165,7 @@ function OrderStatusPage() {
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground max-w-md mx-auto">
           {success
-            ? "Thank you! Your payment has been confirmed. Our optician team will verify your prescription details shortly."
+            ? "Thank you! Your payment has been confirmed. The Lens Master team is preparing your order."
             : isFailed
               ? "Your payment was not completed. No amount was deducted. You can retry anytime."
               : "We are receiving your payment confirmation. If money was debited, it will update automatically."}
@@ -184,8 +184,8 @@ function OrderStatusPage() {
                 💬 Automated WhatsApp Confirmation Sent!
               </p>
               <p className="text-xs sm:text-sm text-emerald-900/80 dark:text-emerald-200/80 leading-relaxed">
-                We've triggered an automated order receipt and tracking link to your WhatsApp number
-                {order?.customer_phone ? <strong> ({order.customer_phone})</strong> : ""}. Our Jaipur optical team is reviewing your order.
+                We've sent an automated order confirmation to your WhatsApp number
+                {order?.customer_phone ? <strong> ({order.customer_phone})</strong> : ""}. The Lens Master team is reviewing your order.
               </p>
             </div>
           </div>
