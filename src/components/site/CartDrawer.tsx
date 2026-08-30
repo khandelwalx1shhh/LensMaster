@@ -228,18 +228,10 @@ export function CartDrawer() {
             {/* Summary + checkout */}
             <div className="border-t bg-background px-5 pt-4 pb-5 space-y-3">
               <div className="space-y-1.5">
-                {bundle.eligibleForBundle && (
-                  <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-muted-foreground">Original Subtotal</span>
-                    <span className="tabular-nums text-muted-foreground line-through">
-                      {formatPrice(displaySubtotal, currency)}
-                    </span>
-                  </div>
-                )}
                 <div className="flex items-center justify-between text-[13px]">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="tabular-nums font-medium">
-                    {formatPrice(bundle.finalTotal, currency)}
+                    {formatPrice(displaySubtotal, currency)}
                   </span>
                 </div>
                 {bundle.eligibleForBundle && (

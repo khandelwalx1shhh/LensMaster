@@ -2,17 +2,46 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MapPin, Phone, Mail, Clock, ArrowUpRight } from "lucide-react";
 import { MAPS_DIRECTIONS_URL, MAPS_EMBED_SRC } from "@/lib/maps";
 
+import { absoluteUrl, generateLocalBusinessSchema, generateBreadcrumbSchema } from "@/lib/seo";
+
 export const Route = createFileRoute("/stores")({
-  head: () => ({
-    meta: [
-      { title: "Visit Our Jaipur Store — Lens Master by The Swadesh" },
-      { name: "description", content: "Lens Master flagship optical store — B-51 Lal Kothi Shopping Centre, Jaipur. Rated 4.9★ on Google. Try premium frames in-store today." },
-      { property: "og:title", content: "Visit Our Jaipur Store — Lens Master" },
-      { property: "og:description", content: "B-51 Lal Kothi Shopping Centre, Jaipur. Open 10:30 AM daily. Rated 4.9★ on Google." },
-      { property: "og:url", content: "/stores" },
-    ],
-    links: [{ rel: "canonical", href: "/stores" }],
-  }),
+  head: () => {
+    const canonical = absoluteUrl("/stores");
+    return {
+      meta: [
+        { title: "Best Optical Store in Jaipur — Visit Lens Master in Lalkothi" },
+        {
+          name: "description",
+          content:
+            "Visit Lens Master flagship optical store at B-51 Lal Kothi Shopping Centre, Jaipur. 4.9★ on Google (700+ reviews). Designer eyeglasses, sunglasses & 1-hour prescription lens fitting.",
+        },
+        { property: "og:title", content: "Lens Master — Jaipur's Flagship Optical Store" },
+        {
+          property: "og:description",
+          content:
+            "B-51 Lal Kothi Shopping Centre, Jaipur. Computerized eye testing & designer eyewear from Ray-Ban, Gucci & more.",
+        },
+        { property: "og:url", content: canonical },
+        { property: "og:type", content: "place" },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(generateLocalBusinessSchema()),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(
+            generateBreadcrumbSchema([
+              { name: "Home", path: "/" },
+              { name: "Stores", path: "/stores" },
+            ]),
+          ),
+        },
+      ],
+    };
+  },
   component: Stores,
 });
 

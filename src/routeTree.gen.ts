@@ -14,7 +14,10 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as BrandsRouteImport } from './routes/brands'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as FeedDotgoogleMerchantDotxmlRouteImport } from './routes/feed[.]google-merchant[.]xml'
+import { Route as LensMasterJaipurRouteImport } from './routes/lens-master-jaipur'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as OpticiansJaipurRouteImport } from './routes/opticians-jaipur'
 import { Route as OrderStatusRouteImport } from './routes/order-status'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ShopRouteImport } from './routes/shop'
@@ -71,9 +74,25 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeedDotgoogleMerchantDotxmlRoute =
+  FeedDotgoogleMerchantDotxmlRouteImport.update({
+    id: '/feed.google-merchant.xml',
+    path: '/feed.google-merchant.xml',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LensMasterJaipurRoute = LensMasterJaipurRouteImport.update({
+  id: '/lens-master-jaipur',
+  path: '/lens-master-jaipur',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpticiansJaipurRoute = OpticiansJaipurRouteImport.update({
+  id: '/opticians-jaipur',
+  path: '/opticians-jaipur',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrderStatusRoute = OrderStatusRouteImport.update({
@@ -237,7 +256,10 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/brands': typeof BrandsRoute
   '/checkout': typeof CheckoutRoute
+  '/feed.google-merchant.xml': typeof FeedDotgoogleMerchantDotxmlRoute
+  '/lens-master-jaipur': typeof LensMasterJaipurRoute
   '/mcp': typeof McpRoute
+  '/opticians-jaipur': typeof OpticiansJaipurRoute
   '/order-status': typeof OrderStatusRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/shop': typeof ShopRoute
@@ -275,7 +297,10 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/brands': typeof BrandsRoute
   '/checkout': typeof CheckoutRoute
+  '/feed.google-merchant.xml': typeof FeedDotgoogleMerchantDotxmlRoute
+  '/lens-master-jaipur': typeof LensMasterJaipurRoute
   '/mcp': typeof McpRoute
+  '/opticians-jaipur': typeof OpticiansJaipurRoute
   '/order-status': typeof OrderStatusRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/shop': typeof ShopRoute
@@ -314,7 +339,10 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/brands': typeof BrandsRoute
   '/checkout': typeof CheckoutRoute
+  '/feed.google-merchant.xml': typeof FeedDotgoogleMerchantDotxmlRoute
+  '/lens-master-jaipur': typeof LensMasterJaipurRoute
   '/mcp': typeof McpRoute
+  '/opticians-jaipur': typeof OpticiansJaipurRoute
   '/order-status': typeof OrderStatusRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/shop': typeof ShopRoute
@@ -354,7 +382,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/brands'
     | '/checkout'
+    | '/feed.google-merchant.xml'
+    | '/lens-master-jaipur'
     | '/mcp'
+    | '/opticians-jaipur'
     | '/order-status'
     | '/privacy-policy'
     | '/shop'
@@ -392,7 +423,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/brands'
     | '/checkout'
+    | '/feed.google-merchant.xml'
+    | '/lens-master-jaipur'
     | '/mcp'
+    | '/opticians-jaipur'
     | '/order-status'
     | '/privacy-policy'
     | '/shop'
@@ -430,7 +464,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/brands'
     | '/checkout'
+    | '/feed.google-merchant.xml'
+    | '/lens-master-jaipur'
     | '/mcp'
+    | '/opticians-jaipur'
     | '/order-status'
     | '/privacy-policy'
     | '/shop'
@@ -469,7 +506,10 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   BrandsRoute: typeof BrandsRoute
   CheckoutRoute: typeof CheckoutRoute
+  FeedDotgoogleMerchantDotxmlRoute: typeof FeedDotgoogleMerchantDotxmlRoute
+  LensMasterJaipurRoute: typeof LensMasterJaipurRoute
   McpRoute: typeof McpRoute
+  OpticiansJaipurRoute: typeof OpticiansJaipurRoute
   OrderStatusRoute: typeof OrderStatusRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ShopRoute: typeof ShopRoute
@@ -530,11 +570,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/feed.google-merchant.xml': {
+      id: '/feed.google-merchant.xml'
+      path: '/feed.google-merchant.xml'
+      fullPath: '/feed.google-merchant.xml'
+      preLoaderRoute: typeof FeedDotgoogleMerchantDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lens-master-jaipur': {
+      id: '/lens-master-jaipur'
+      path: '/lens-master-jaipur'
+      fullPath: '/lens-master-jaipur'
+      preLoaderRoute: typeof LensMasterJaipurRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/opticians-jaipur': {
+      id: '/opticians-jaipur'
+      path: '/opticians-jaipur'
+      fullPath: '/opticians-jaipur'
+      preLoaderRoute: typeof OpticiansJaipurRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/order-status': {
@@ -784,7 +845,10 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   BrandsRoute: BrandsRoute,
   CheckoutRoute: CheckoutRoute,
+  FeedDotgoogleMerchantDotxmlRoute: FeedDotgoogleMerchantDotxmlRoute,
+  LensMasterJaipurRoute: LensMasterJaipurRoute,
   McpRoute: McpRoute,
+  OpticiansJaipurRoute: OpticiansJaipurRoute,
   OrderStatusRoute: OrderStatusRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   ShopRoute: ShopRoute,

@@ -446,13 +446,7 @@ function CheckoutPage() {
           </ul>
 
           <div className="mt-5 space-y-1.5 border-t pt-4 text-[13px]">
-            {bundle.eligibleForBundle && (
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span>Original Subtotal</span>
-                <span className="tabular-nums line-through">{formatPrice(subtotal, currency)}</span>
-              </div>
-            )}
-            <Row label="Subtotal" value={formatPrice(bundle.finalTotal, currency)} />
+            <Row label="Subtotal" value={formatPrice(subtotal, currency)} />
             {bundle.eligibleForBundle && (
               <Row
                 label="Blue Cut Pair Discount"

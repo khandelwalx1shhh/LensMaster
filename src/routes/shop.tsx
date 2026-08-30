@@ -22,6 +22,8 @@ const CATEGORY_TITLES: Record<Exclude<Category, "">, { title: string; blurb: str
   prescription: { title: "Prescription", blurb: "Everyday clarity in signature Lens Master craftsmanship." },
 };
 
+import { absoluteUrl, generateBreadcrumbSchema } from "@/lib/seo";
+
 export const Route = createFileRoute("/shop")({
   validateSearch: (
     s: Record<string, unknown>,
@@ -30,16 +32,59 @@ export const Route = createFileRoute("/shop")({
     category: (VALID_CATEGORIES.includes(s.category as Category) ? s.category : "") as Category,
     brand: typeof s.brand === "string" ? s.brand : undefined,
   }),
-  head: () => ({
-    meta: [
-      { title: "Shop Eyewear Online — Frames, Sunglasses & Contact Lenses | Lens Master" },
-      { name: "description", content: "Browse premium prescription frames, sunglasses, blue-light glasses and contact lenses. Free power fitting. 4.9★ rated optical store in Jaipur." },
-      { property: "og:title", content: "Shop Eyewear — Lens Master Jaipur" },
-      { property: "og:description", content: "Premium frames and lenses from the world's leading eyewear houses. Ships across India." },
-      { property: "og:url", content: "/shop" },
-    ],
-    links: [{ rel: "canonical", href: "/shop" }],
-  }),
+  head: ({ search }) => {
+    const isBlueCut = search?.offer === "blue-cut";
+    const catKey = search?.category as Exclude<Category, ""> | undefined;
+    const catInfo = catKey && CATEGORY_TITLES[catKey] ? CATEGORY_TITLES[catKey] : null;
+    const brandName = search?.brand;
+
+    let title = "Shop Eyewear Online — Frames, Sunglasses & Blue Cut | Lens Master";
+    let description =
+      "Browse premium prescription frames, sunglasses, blue cut glasses, and contact lenses. Free lens fitting & fast delivery from Jaipur's #1 rated optical store.";
+    let canonicalPath = "/shop";
+
+    if (isBlueCut) {
+      title = "Blue Cut Glasses Offer in Jaipur | Buy 2 @ ₹1,199 | Lens Master";
+      description =
+        "Exclusive Blue Cut Glasses offer in Jaipur. Get 2 frames with premium anti-glare blue-light filtering lenses at ₹1,199 (1 @ ₹849).";
+      canonicalPath = "/shop?offer=blue-cut";
+    } else if (brandName) {
+      title = `${brandName} Glasses & Eyewear in Jaipur | Buy Online | Lens Master`;
+      description = `Explore 100% authentic ${brandName} optical frames and sunglasses at Lens Master Jaipur. In-store fitting and free eye testing in Lalkothi.`;
+      canonicalPath = `/shop?brand=${encodeURIComponent(brandName)}`;
+    } else if (catInfo) {
+      title = `${catInfo.title} Eyewear Online | Lens Master Jaipur`;
+      description = `${catInfo.blurb} Available online and in our Lalkothi store in Jaipur.`;
+      canonicalPath = `/shop?category=${catKey}`;
+    }
+
+    const canonical = absoluteUrl(canonicalPath);
+    const breadcrumbs = [
+      { name: "Home", path: "/" },
+      { name: "Shop", path: "/shop" },
+      ...(catInfo ? [{ name: catInfo.title, path: `/shop?category=${catKey}` }] : []),
+      ...(brandName ? [{ name: brandName, path: `/shop?brand=${encodeURIComponent(brandName)}` }] : []),
+      ...(isBlueCut ? [{ name: "Blue Cut Offer", path: "/shop?offer=blue-cut" }] : []),
+    ];
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: canonical },
+        { property: "og:type", content: "website" },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(generateBreadcrumbSchema(breadcrumbs)),
+        },
+      ],
+    };
+  },
   component: Shop,
 });
 

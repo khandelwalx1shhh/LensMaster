@@ -57,7 +57,9 @@ export function Footer() {
             title="Company"
             links={[
               { label: "About Lens Master", to: "/about" },
-              { label: "Our Store Locations", to: "/stores" },
+              { label: "Lens Master Jaipur", to: "/lens-master-jaipur" },
+              { label: "Our Store Showroom", to: "/stores" },
+              { label: "Opticians in Jaipur", to: "/opticians-jaipur" },
               { label: "Featured Brands", to: "/brands" },
             ]}
           />
@@ -65,7 +67,8 @@ export function Footer() {
           <FooterCol
             title="Support & Legal"
             links={[
-              { label: "Contact & Consultation", to: "/stores" },
+              { label: "Book Appointment", to: "/lens-master-jaipur#book-appointment" },
+              { label: "Contact & Directions", to: "/stores" },
               { label: "Privacy Policy", to: "/privacy-policy" },
               { label: "Terms & Conditions", to: "/terms-and-conditions" },
               { label: "Order Status Lookup", to: "/order-status" },

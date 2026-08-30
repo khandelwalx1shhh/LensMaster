@@ -9,18 +9,45 @@ import kidsImg from "@/assets/collections/kids.jpg";
 import sportsImg from "@/assets/collections/sports.jpg";
 import { ProductGrid } from "@/components/site/ProductGrid";
 import { MAPS_DIRECTIONS_URL, MAPS_EMBED_SRC } from "@/lib/maps";
+import {
+  BLUE_CUT_SINGLE_PRICE,
+  BLUE_CUT_BUNDLE_PRICE,
+  BLUE_CUT_HIGH_POWER_SINGLE_PRICE,
+  BLUE_CUT_HIGH_POWER_BUNDLE_PRICE,
+  BLUE_CUT_HIGH_POWER_THRESHOLD,
+  formatPrice,
+} from "@/lib/shopify";
+
+import { absoluteUrl, generateBreadcrumbSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Lens Master — Premium Eyewear & Optical Store in Jaipur" },
-      { name: "description", content: "Shop premium frames, sunglasses, contact lenses and blue-light eyewear from Ray-Ban, Gucci, Oakley, Prada and more. Jaipur's #1 rated optical store — 4.9★ on Google." },
-      { property: "og:title", content: "Lens Master — Premium Eyewear & Optical Store in Jaipur" },
-      { property: "og:description", content: "Ray-Ban, Gucci, Oakley, Prada and more — with precision lenses fitted in-store. 4.9★ on Google." },
-      { property: "og:url", content: "/" },
-    ],
-    links: [{ rel: "canonical", href: "/" }],
-  }),
+  head: () => {
+    const canonical = absoluteUrl("/");
+    return {
+      meta: [
+        { title: "Lens Master — Jaipur's #1 Luxury Optical Store & Eyewear Destination" },
+        {
+          name: "description",
+          content:
+            "Shop premium designer frames, eyeglasses, sunglasses, and blue cut glasses in Jaipur from Ray-Ban, Gucci, Oakley, Prada. Computerized eye testing & precision lens fitting in Lalkothi.",
+        },
+        { property: "og:title", content: "Lens Master — Premium Eyewear & Optical Store in Jaipur" },
+        {
+          property: "og:description",
+          content: "Ray-Ban, Gucci, Oakley, Prada, Blue Cut glasses & precision lenses fitted in-store. 4.9★ on Google.",
+        },
+        { property: "og:url", content: canonical },
+        { property: "og:type", content: "website" },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(generateBreadcrumbSchema([{ name: "Home", path: "/" }])),
+        },
+      ],
+    };
+  },
   component: Home,
 });
 
@@ -86,11 +113,13 @@ function Home() {
               >
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3 py-2 text-white backdrop-blur-sm transition group-hover:bg-black/60 group-hover:border-white/30">
                   <span className="inline-flex shrink-0 items-center rounded-full bg-gold/90 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-black uppercase">Offer</span>
-                  <p className="text-xs sm:text-sm font-medium leading-snug">2 glasses with Blue Cut lenses @ ₹1,199</p>
+                  <p className="text-xs sm:text-sm font-medium leading-snug">
+                    2 glasses with Blue Cut lenses @ {formatPrice(BLUE_CUT_BUNDLE_PRICE)}
+                  </p>
                 </div>
               </Link>
               <p className="mt-1.5 text-[10px] leading-relaxed text-white/50">
-                1 @ ₹849 · Power above ±4.00: 1 @ ₹1,049 (2 @ ₹1,599) · T&C apply
+                1 @ {formatPrice(BLUE_CUT_SINGLE_PRICE)} · Power above ±{BLUE_CUT_HIGH_POWER_THRESHOLD}.00: 1 @ {formatPrice(BLUE_CUT_HIGH_POWER_SINGLE_PRICE)} (2 @ {formatPrice(BLUE_CUT_HIGH_POWER_BUNDLE_PRICE)}) · T&C apply
               </p>
 
               <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 animate-in slide-in-from-bottom-4 duration-700 delay-300">

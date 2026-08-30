@@ -1,4 +1,21 @@
+# Robots.txt for Lens Master (https://lensmaster.in)
 User-agent: *
 Allow: /
+Allow: /shop
+Allow: /product/
+Allow: /brands
+Allow: /stores
+Allow: /about
+Allow: /lens-master-jaipur
+Allow: /opticians-jaipur
+Allow: /feed/google-merchant.xml
 
-Sitemap: /sitemap.xml
+# Protect checkout, admin and API endpoints
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /order-status
+Disallow: /api/
+
+# Host and Sitemap
+Host: https://lensmaster.in
+Sitemap: https://lensmaster.in/sitemap.xml

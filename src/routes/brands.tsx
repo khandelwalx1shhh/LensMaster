@@ -4,17 +4,38 @@ import { ProductGrid } from "@/components/site/ProductGrid";
 import { ShopFilters, DEFAULT_FILTERS, type Filters } from "@/components/site/ShopFilters";
 
 
+import { absoluteUrl, generateBreadcrumbSchema } from "@/lib/seo";
+
 export const Route = createFileRoute("/brands")({
-  head: () => ({
-    meta: [
-      { title: "Designer Eyewear Brands — Ray-Ban, Gucci, Prada & More | Lens Master" },
-      { name: "description", content: "Shop Ray-Ban, Gucci, Oakley, Tom Ford, Prada, Carrera, Armani, Vogue, Calvin Klein and more at Lens Master Jaipur. Authorised dealer." },
-      { property: "og:title", content: "Designer Eyewear Brands — Lens Master" },
-      { property: "og:description", content: "The world's premier eyewear houses, curated in Jaipur." },
-      { property: "og:url", content: "/brands" },
-    ],
-    links: [{ rel: "canonical", href: "/brands" }],
-  }),
+  head: () => {
+    const canonical = absoluteUrl("/brands");
+    return {
+      meta: [
+        { title: "Designer Eyewear Brands in Jaipur — Ray-Ban, Gucci, Prada | Lens Master" },
+        {
+          name: "description",
+          content:
+            "Shop 100% authentic Ray-Ban, Gucci, Oakley, Tom Ford, Prada, Carrera, Armani, Vogue and more at Lens Master Jaipur. Authorized luxury eyewear dealer in Lalkothi.",
+        },
+        { property: "og:title", content: "Designer Eyewear Brands — Lens Master Jaipur" },
+        { property: "og:description", content: "The world's premier eyewear houses, curated in Jaipur." },
+        { property: "og:url", content: canonical },
+        { property: "og:type", content: "website" },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(
+            generateBreadcrumbSchema([
+              { name: "Home", path: "/" },
+              { name: "Brands", path: "/brands" },
+            ]),
+          ),
+        },
+      ],
+    };
+  },
   component: Brands,
 });
 

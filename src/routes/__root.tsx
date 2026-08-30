@@ -78,59 +78,74 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+import {
+  SITE_NAME,
+  DEFAULT_OG_IMAGE,
+  generateLocalBusinessSchema,
+  generateOrganizationSchema,
+  generateWebsiteSchema,
+} from "@/lib/seo";
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
+  head: () => {
+    const googleVerification =
+      (typeof process !== "undefined" && (process.env?.VITE_GOOGLE_SITE_VERIFICATION || process.env?.GOOGLE_SITE_VERIFICATION)) ||
+      "";
+
+    const meta: Array<Record<string, string>> = [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#111111" },
-      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
+      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
       { name: "author", content: "Lens Master by The Swadesh" },
-      { name: "keywords", content: "eyewear jaipur, optical store jaipur, ray-ban jaipur, gucci glasses, prescription glasses, sunglasses, blue light glasses, contact lenses, lens master, opticians jaipur, spectacles jaipur" },
+      {
+        name: "keywords",
+        content:
+          "optical store in jaipur, best optical shop in jaipur, eyeglasses in jaipur, ray-ban store jaipur, prescription glasses jaipur, blue cut glasses jaipur, opticians in jaipur, luxury eyewear jaipur, gucci glasses, designer frames, spectacles jaipur",
+      },
       { name: "geo.region", content: "IN-RJ" },
       { name: "geo.placename", content: "Jaipur" },
-      { property: "og:site_name", content: "Lens Master" },
+      { name: "geo.position", content: "26.882498;75.800053" },
+      { name: "ICBM", content: "26.882498, 75.800053" },
+      { property: "og:site_name", content: SITE_NAME },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "en_IN" },
+      { property: "og:image", content: DEFAULT_OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "Lens Master — Premium Eyewear & Optical Store in Jaipur" },
       { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico?v=2", type: "image/x-icon" },
-      { rel: "preconnect", href: "https://cdn.shopify.com" },
-      { rel: "preconnect", href: "https://img.logo.dev" },
-    ],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Optician",
-          name: "Lens Master by The Swadesh",
-          image: "/favicon.ico",
-          "@id": "https://lensmaster.in/#store",
-          url: "https://lensmaster.in/",
-          telephone: "+91-98292-30548",
-          priceRange: "₹₹",
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: "B-51, Lal Kothi Shopping Centre, Laxmi Colony, Lalkothi",
-            addressLocality: "Jaipur",
-            addressRegion: "Rajasthan",
-            postalCode: "302015",
-            addressCountry: "IN",
-          },
-          geo: { "@type": "GeoCoordinates", latitude: 26.8824981, longitude: 75.8000534 },
-          openingHoursSpecification: [
-            { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], opens: "10:30", closes: "21:00" },
-            { "@type": "OpeningHoursSpecification", dayOfWeek: "Sunday", opens: "10:30", closes: "19:00" },
-          ],
-          aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "700" },
-          sameAs: [],
-        }),
-      },
-    ],
-  }),
+      { name: "twitter:image", content: DEFAULT_OG_IMAGE },
+    ];
+
+    if (googleVerification) {
+      meta.push({ name: "google-site-verification", content: googleVerification });
+    }
+
+    return {
+      meta,
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "icon", href: "/favicon.ico?v=2", type: "image/x-icon" },
+        { rel: "preconnect", href: "https://cdn.shopify.com" },
+        { rel: "preconnect", href: "https://img.logo.dev" },
+      ],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(generateLocalBusinessSchema()),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(generateOrganizationSchema()),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(generateWebsiteSchema()),
+        },
+      ],
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,

@@ -18,50 +18,95 @@ import { ReviewsSection } from "@/components/site/ReviewsSection";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { sanitizeHtml } from "@/lib/sanitize";
 
+import { absoluteUrl, generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo";
+
 export const Route = createFileRoute("/product/$handle")({
   loader: ({ params }) => fetchProductByHandle(params.handle),
   head: ({ loaderData, params }) => {
-    const p = loaderData as { title?: string; description?: string; images?: { edges: Array<{ node: { url: string; altText: string | null } }> }; priceRange?: { minVariantPrice: { amount: string; currencyCode: string } }; vendor?: string; handle?: string } | null;
-    if (!p) {
+    const p = loaderData as {
+      id?: string;
+      title?: string;
+      description?: string;
+      images?: { edges: Array<{ node: { url: string; altText: string | null } }> };
+      priceRange?: { minVariantPrice: { amount: string; currencyCode: string } };
+      vendor?: string;
+      handle?: string;
+      productType?: string;
+      variants?: { edges: Array<{ node: { availableForSale: boolean; sku?: string } }> };
+    } | null;
+
+    if (!p || !p.title) {
       return { meta: [{ title: "Product — Lens Master" }] };
     }
-    const image = p.images?.edges[0]?.node.url;
-    const title = `${p.title} — Buy Online at Lens Master`;
-    const description = (p.description || `Shop ${p.title} at Lens Master, Jaipur. Premium eyewear with precision lenses and free power fitting.`).slice(0, 160);
-    const canonical = `/product/${params.handle}`;
+
+    const images = p.images?.edges?.map((e) => e.node.url) || [];
+    const image = images[0] || "";
+    const title = `${p.title} | Buy Online | Lens Master Jaipur`;
+    const description = (
+      p.description ||
+      `Shop ${p.title} ${p.vendor ? `by ${p.vendor}` : ""} at Lens Master, Jaipur. Premium frames, precision prescription lenses, and computerized eye testing in Lalkothi.`
+    ).slice(0, 160);
+    const canonical = absoluteUrl(`/product/${params.handle}`);
+    const inStock = Array.isArray(p.variants?.edges)
+      ? p.variants.edges.some((e) => e.node.availableForSale)
+      : true;
+    const sku = p.variants?.edges?.[0]?.node?.sku;
+
     const meta: Array<Record<string, string>> = [
       { title },
       { name: "description", content: description },
-      { property: "og:title", content: p.title || "Lens Master" },
+      { property: "og:title", content: p.title },
       { property: "og:description", content: description },
       { property: "og:type", content: "product" },
       { property: "og:url", content: canonical },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: p.title },
+      { name: "twitter:description", content: description },
     ];
+
     if (image) {
       meta.push({ property: "og:image", content: image });
+      meta.push({ property: "og:image:alt", content: p.title });
       meta.push({ name: "twitter:image", content: image });
     }
-    const inStock = Array.isArray((p as { variants?: { edges: Array<{ node: { availableForSale: boolean } }> } }).variants?.edges)
-      ? (p as { variants: { edges: Array<{ node: { availableForSale: boolean } }> } }).variants.edges.some((e) => e.node.availableForSale)
-      : false;
-    const scripts = p.priceRange ? [{
-      type: "application/ld+json",
-      children: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: p.title,
-        description,
-        image: image ? [image] : undefined,
-        brand: p.vendor ? { "@type": "Brand", name: p.vendor } : undefined,
-        offers: {
-          "@type": "Offer",
-          priceCurrency: p.priceRange.minVariantPrice.currencyCode,
+
+    const productSchema = p.priceRange
+      ? generateProductSchema({
+          id: p.id,
+          title: p.title,
+          description,
+          vendor: p.vendor,
+          images,
           price: p.priceRange.minVariantPrice.amount,
-          availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-        },
-      }),
-    }] : undefined;
+          currencyCode: p.priceRange.minVariantPrice.currencyCode,
+          inStock,
+          handle: params.handle,
+          sku,
+        })
+      : null;
+
+    const breadcrumbsSchema = generateBreadcrumbSchema([
+      { name: "Home", path: "/" },
+      { name: "Shop", path: "/shop" },
+      ...(p.productType ? [{ name: p.productType, path: `/shop?category=${encodeURIComponent(p.productType.toLowerCase())}` }] : []),
+      { name: p.title, path: `/product/${params.handle}` },
+    ]);
+
+    const scripts = [
+      ...(productSchema
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify(productSchema),
+            },
+          ]
+        : []),
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(breadcrumbsSchema),
+      },
+    ];
+
     return { meta, links: [{ rel: "canonical", href: canonical }], scripts };
   },
   component: ProductPage,
