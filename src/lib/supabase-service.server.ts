@@ -193,6 +193,38 @@ async function syncOrderToShopify(
       shopifyOrderId: shopifyOrder.id,
       shopifyOrderName: shopifyOrder.name,
     });
+
+    // Dispatch automated WhatsApp confirmation to consumer & store admin
+    try {
+      const { sendOrderConfirmationWhatsApp } = await import("./whatsapp.server");
+      await sendOrderConfirmationWhatsApp({
+        orderId: String(order.id),
+        orderNumber: String(order.order_number || order.id),
+        customerName: order.customer_name,
+        customerPhone: order.customer_phone,
+        customerEmail: order.customer_email,
+        addressLine1: order.address_line1,
+        addressLine2: order.address_line2,
+        city: order.city,
+        state: order.state,
+        pincode: order.pincode,
+        subtotal: Number(order.subtotal),
+        deliveryFee: Number(order.delivery_fee),
+        total: Number(order.total),
+        items: (order.order_items || []).map((item: any) => ({
+          title: item.title,
+          quantity: item.quantity,
+          price: Number(item.price),
+          variant_title: item.variant_title,
+          lens_type: item.lens_type,
+          prescription: item.prescriptions,
+        })),
+        paymentId,
+        razorpayOrderId,
+      });
+    } catch (waError) {
+      console.error("[whatsapp] notification dispatch failed (non-blocking)", waError);
+    }
   } catch (error) {
     console.error("[shopify-sync] failed to sync order to Shopify", {
       orderId,

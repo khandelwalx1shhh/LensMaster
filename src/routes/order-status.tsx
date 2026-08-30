@@ -172,22 +172,36 @@ function OrderStatusPage() {
         </p>
       </div>
 
-      {/* Prominent Screenshot Notice Banner */}
+      {/* Automated WhatsApp Confirmation Banner */}
       {success && (
-        <div className="mt-6 rounded-2xl border-2 border-amber-500/30 bg-amber-500/10 p-5 text-amber-950 dark:text-amber-200">
+        <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 text-emerald-950 dark:text-emerald-200">
           <div className="flex items-start gap-3.5">
-            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
-              <Camera className="h-5 w-5" strokeWidth={2} />
+            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <MessageCircle className="h-5 w-5" strokeWidth={2} />
             </div>
             <div className="space-y-1">
               <p className="font-semibold text-sm sm:text-base flex items-center gap-1.5">
-                📸 Please Take a Screenshot of this Page
+                💬 Automated WhatsApp Confirmation Sent!
               </p>
-              <p className="text-xs sm:text-sm text-amber-900/80 dark:text-amber-200/80 leading-relaxed">
-                Save a screenshot of this receipt with your <strong>Order Reference</strong> &amp;{" "}
-                <strong>Transaction ID</strong> for your records and instant WhatsApp assistance.
+              <p className="text-xs sm:text-sm text-emerald-900/80 dark:text-emerald-200/80 leading-relaxed">
+                We've triggered an automated order receipt and tracking link to your WhatsApp number
+                {order?.customer_phone ? <strong> ({order.customer_phone})</strong> : ""}. Our Jaipur optical team is reviewing your order.
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Prominent Screenshot Notice Banner */}
+      {success && (
+        <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-950 dark:text-amber-200">
+          <div className="flex items-start gap-3">
+            <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+              <Camera className="h-4 w-4" strokeWidth={2} />
+            </div>
+            <p className="text-xs text-amber-900/80 dark:text-amber-200/80 leading-relaxed">
+              <strong>Tip:</strong> Keep a screenshot of this receipt with Order Reference <strong>{orderId || "N/A"}</strong> for fast in-store or online support.
+            </p>
           </div>
         </div>
       )}
@@ -350,13 +364,13 @@ function OrderStatusPage() {
           className="h-12 rounded-full px-6 w-full sm:w-auto border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
         >
           <a
-            href={`https://wa.me/919829012345?text=${whatsappMessage}`}
+            href={`https://wa.me/919829230548?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2"
           >
             <MessageCircle className="h-4 w-4 fill-current" />
-            <span>Send to WhatsApp</span>
+            <span>Chat on WhatsApp</span>
           </a>
         </Button>
 
