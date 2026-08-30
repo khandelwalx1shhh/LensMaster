@@ -20,9 +20,6 @@ import {
   Building2,
   BadgeCheck,
 } from "lucide-react";
-import storeInteriorImg from "@/assets/store/store-interior.jpg";
-import eyeTestingLabImg from "@/assets/store/eye-testing-lab.jpg";
-import tryOnLoungeImg from "@/assets/store/try-on-lounge.jpg";
 import { MAPS_DIRECTIONS_URL, MAPS_EMBED_SRC } from "@/lib/maps";
 import {
   SITE_URL,
@@ -284,81 +281,68 @@ function LensMasterJaipurPage() {
             </div>
           </div>
 
-          {/* Featured Interior Photo Card */}
+          {/* Quick Highlights Card */}
           <div className="lg:col-span-5">
-            <div className="relative rounded-2xl overflow-hidden border border-background/20 shadow-2xl group">
-              <img
-                src={storeInteriorImg}
-                alt="Lens Master Jaipur Luxury Optical Store Interior"
-                className="w-full h-auto aspect-[4/3] object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-5">
-                <div className="text-white">
-                  <p className="text-xs uppercase tracking-wider text-gold font-semibold">Flagship Showroom</p>
-                  <p className="text-sm font-medium">B-51 Lal Kothi Shopping Centre, Jaipur</p>
+            <div className="rounded-2xl border border-background/20 bg-background/5 backdrop-blur-md p-6 sm:p-8 space-y-5 text-background">
+              <div className="flex items-center justify-between pb-4 border-b border-background/15">
+                <span className="text-xs uppercase tracking-wider text-gold font-semibold flex items-center gap-1.5">
+                  <BadgeCheck className="h-4 w-4" /> Verified Optical Store
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-medium">
+                  ● Open Today
+                </span>
+              </div>
+
+              <div className="space-y-3.5 text-sm">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-background/10 flex items-center justify-center text-gold shrink-0">
+                    <Eye className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-xs text-background">Free Computerized Eye Testing</p>
+                    <p className="text-[11px] text-background/70">Certified optometrist &amp; digital auto-refractor</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-background/10 flex items-center justify-center text-gold shrink-0">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-xs text-background">1-Hour Express Lens Fitting</p>
+                    <p className="text-[11px] text-background/70">In-house computerized edging laboratory</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-background/10 flex items-center justify-center text-gold shrink-0">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-xs text-background">Authorized Luxury Dealer</p>
+                    <p className="text-[11px] text-background/70">Ray-Ban, Gucci, Prada, Oakley &amp; Vogue</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-background/10 flex items-center justify-center text-gold shrink-0">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-xs text-background">Blue Cut Offer: 2 @ ₹1,199</p>
+                    <p className="text-[11px] text-background/70">UV420 digital anti-glare screen protection</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* STORE PHOTOS GALLERY */}
-      <section className="mt-14 sm:mt-20">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <p className="text-[10px] sm:text-xs uppercase tracking-[0.3em] text-muted-foreground">Store Tour</p>
-            <h2 className="mt-2 font-display text-2xl sm:text-4xl font-light">Inside Lens Master Jaipur</h2>
-          </div>
-          <span className="text-xs sm:text-sm text-muted-foreground">Lalkothi, Jaipur</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="rounded-2xl border border-border bg-card overflow-hidden group">
-            <div className="aspect-[4/3] overflow-hidden">
-              <img
-                src={storeInteriorImg}
-                alt="Lens Master Jaipur Luxury Eyewear Boutique Interior"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            </div>
-            <div className="p-4">
-              <h3 className="font-display text-base font-semibold">Designer Frame Boutique</h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                Over 1,500+ curated frames from Ray-Ban, Gucci, Prada, Oakley, and boutique Indian designers.
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card overflow-hidden group">
-            <div className="aspect-[4/3] overflow-hidden">
-              <img
-                src={eyeTestingLabImg}
-                alt="Computerized Eye Testing Clinic Lens Master Jaipur"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            </div>
-            <div className="p-4">
-              <h3 className="font-display text-base font-semibold">Computerized Eye Testing Lab</h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                Zero-error digital refraction and comprehensive prescription analysis by certified optometrists.
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card overflow-hidden group">
-            <div className="aspect-[4/3] overflow-hidden">
-              <img
-                src={tryOnLoungeImg}
-                alt="Eyewear Styling and Try-On Lounge Lens Master Jaipur"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            </div>
-            <div className="p-4">
-              <h3 className="font-display text-base font-semibold">Personal Styling Lounge</h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                Relaxed try-on counters with face-shape analysis and custom frame fitting consultations.
-              </p>
+              <div className="pt-4 border-t border-background/15 flex items-center justify-between text-xs text-background/80">
+                <div className="flex items-center gap-1 text-gold">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                  ))}
+                </div>
+                <span>4.9★ (700+ Reviews)</span>
+              </div>
             </div>
           </div>
         </div>
