@@ -127,8 +127,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       links: [
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: "/favicon.ico?v=2", type: "image/x-icon" },
-        { rel: "preconnect", href: "https://cdn.shopify.com" },
-        { rel: "preconnect", href: "https://img.logo.dev" },
+        { rel: "preconnect", href: "https://cdn.shopify.com", crossOrigin: "anonymous" },
+        { rel: "dns-prefetch", href: "https://cdn.shopify.com" },
+        { rel: "preconnect", href: "https://img.logo.dev", crossOrigin: "anonymous" },
+        { rel: "dns-prefetch", href: "https://img.logo.dev" },
+        { rel: "dns-prefetch", href: "https://api.razorpay.com" },
       ],
       scripts: [
         {
