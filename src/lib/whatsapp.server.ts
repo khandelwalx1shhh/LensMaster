@@ -71,9 +71,9 @@ export function formatCustomerOrderMessage(order: OrderNotificationData): string
     `💰 *Amount Paid:* ₹${order.total.toLocaleString("en-IN")}\n\n` +
     `📦 *Items Ordered:*\n${itemsText}\n\n` +
     `📍 *Delivery Address:*\n${order.addressLine1}${order.addressLine2 ? `, ${order.addressLine2}` : ""}, ${order.city}, ${order.state} — ${order.pincode}\n\n` +
-    `💬 *Prescription or Questions?*\n` +
-    `Reply directly to this chat or call Lens Master at *${STORE_PHONE}*.\n\n` +
-    `_Lens Master — Premium Eyewear_`
+    `📄 *Please send your prescription in this chat as soon as possible so the order can be processed.*\n\n` +
+    `💬 For any questions, call us at *${STORE_PHONE}*.\n\n` +
+    `_Lens Master_`
   );
 }
 
