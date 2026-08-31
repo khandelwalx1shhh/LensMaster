@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getAdminOrders, updateOrderStatus } from "@/lib/admin.functions";
 import { getCsrfToken } from "@/lib/admin/client";
@@ -9,6 +9,7 @@ import {
   type AdminOrderItem,
   type AdminOrderRow,
   type AdminPrescription,
+  type FulfillmentStage,
 } from "@/lib/admin-orders.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,20 +26,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Check, CircleDot, Search, X } from "lucide-react";
+import {
+  Check,
+  CircleDot,
+  Search,
+  X,
+  Printer,
+  MessageCircle,
+  Glasses,
+  ExternalLink,
+} from "lucide-react";
 
 export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
 });
 
-const inr = (v: number) => `₹${Number(v).toLocaleString("en-IN")}`;
+const inr = (v: number) => `₹${Number(v || 0).toLocaleString("en-IN")}`;
 const dateTime = (v: string) =>
   new Date(v).toLocaleString("en-IN", {
     day: "2-digit",
     month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
+
+const STAGE_LABELS: Record<string, string> = {
+  pending: "Pending",
+  processing: "Under Process (Lab)",
+  ready: "Ready for Dispatch",
+  shipped: "Shipped / In Transit",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+  confirmed: "Confirmed",
+};
 
 function AdminOrders() {
   const { data, isLoading, isError, refetch } = useQuery({
@@ -51,6 +72,7 @@ function AdminOrders() {
   const [payment, setPayment] = useState("all");
   const [range, setRange] = useState("all");
   const [openOrder, setOpenOrder] = useState<AdminOrderRow | null>(null);
+  const [labelOrder, setLabelOrder] = useState<AdminOrderRow | null>(null);
 
   const orders = useMemo(() => (data ?? []) as AdminOrderRow[], [data]);
 
@@ -70,6 +92,7 @@ function AdminOrders() {
         o.customerPhone ?? "",
         o.customerEmail ?? "",
         o.city,
+        o.state,
         o.pincode,
         o.note ?? "",
         ...o.lineItems.map((i) => i.title),
@@ -90,170 +113,206 @@ function AdminOrders() {
     (range !== "all" ? 1 : 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="space-y-6 animate-in fade-in duration-200">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl tracking-tight">Orders</h1>
-          <p className="text-sm text-muted-foreground">
-            Fulfilment progress, items & prescriptions (Shopify).
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight">Order Management</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            Track optical lab processing, ready parcels, shipping labels & customer notifications.
           </p>
         </div>
-        <div className="flex gap-6 text-right">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Shown</p>
-            <p className="font-display text-lg">{filtered.length}</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Paid value</p>
-            <p className="font-display text-lg">{inr(revenue)}</p>
+
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl border border-border/80 bg-card px-4 py-2 text-right shadow-xs">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Filtered Revenue</span>
+            <p className="font-display text-lg font-bold text-emerald-600 dark:text-emerald-400 leading-tight">{inr(revenue)}</p>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-[220px] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5 bg-card p-4 rounded-2xl border border-border/70 shadow-xs">
+        <div className="relative sm:col-span-2">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
+            placeholder="Search order #, customer, phone, city..."
             value={query}
-            onChange={(e) => setQuery(e.target.value.slice(0, 80))}
-            placeholder="Search order no, name, phone, city…"
-            className="h-10 rounded-full pl-9"
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-9.5 rounded-xl text-xs bg-background h-10"
           />
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="h-10 w-[150px] rounded-full">
-            <SelectValue placeholder="Status" />
+          <SelectTrigger className="rounded-xl text-xs bg-background h-10">
+            <SelectValue placeholder="Fulfillment Stage" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {[...FULFILLMENT_STAGES, "cancelled"].map((s) => (
-              <SelectItem key={s} value={s} className="capitalize">
-                {s}
-              </SelectItem>
-            ))}
+            <SelectItem value="all">All Stages</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="processing">Under Process (Lab)</SelectItem>
+            <SelectItem value="ready">Ready for Dispatch</SelectItem>
+            <SelectItem value="shipped">Shipped</SelectItem>
+            <SelectItem value="delivered">Delivered</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={payment} onValueChange={setPayment}>
-          <SelectTrigger className="h-10 w-[150px] rounded-full">
-            <SelectValue placeholder="Payment" />
+          <SelectTrigger className="rounded-xl text-xs bg-background h-10">
+            <SelectValue placeholder="Payment Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All payments</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="all">All Payments</SelectItem>
+            <SelectItem value="paid">Paid (Razorpay)</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="failed">Failed</SelectItem>
-            <SelectItem value="refunded">Refunded</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={range} onValueChange={setRange}>
-          <SelectTrigger className="h-10 w-[140px] rounded-full">
-            <SelectValue placeholder="Period" />
+          <SelectTrigger className="rounded-xl text-xs bg-background h-10">
+            <SelectValue placeholder="Date Range" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All time</SelectItem>
-            <SelectItem value="1">Last 24 hours</SelectItem>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="all">All Time</SelectItem>
+            <SelectItem value="1">Last 24 Hours</SelectItem>
+            <SelectItem value="7">Last 7 Days</SelectItem>
+            <SelectItem value="30">Last 30 Days</SelectItem>
           </SelectContent>
         </Select>
-
-        {(activeFilters > 0 || query) && (
-          <Button
-            variant="ghost"
-            className="h-10 rounded-full"
-            onClick={() => {
-              setQuery("");
-              setStatus("all");
-              setPayment("all");
-              setRange("all");
-            }}
-          >
-            <X className="mr-1 h-4 w-4" /> Clear
-          </Button>
-        )}
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading orders…</p>
-      ) : isError ? (
-        <div className="rounded-xl border p-6 text-sm">
-          <p className="text-muted-foreground">We couldn't load orders just now.</p>
-          <Button variant="outline" size="sm" className="mt-3 rounded-full" onClick={() => refetch()}>
-            Try again
-          </Button>
+        <div className="p-12 text-center text-sm text-muted-foreground animate-pulse">
+          Loading optical orders…
         </div>
       ) : filtered.length === 0 ? (
-        <p className="rounded-xl border p-6 text-sm text-muted-foreground">
-          {orders.length === 0 ? "No orders yet." : "No orders match these filters."}
-        </p>
+        <div className="rounded-2xl border border-dashed p-12 text-center bg-card/40">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+            <Search className="h-6 w-6" strokeWidth={1.5} />
+          </div>
+          <h3 className="mt-4 font-display text-base font-semibold text-foreground">No matching orders found</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {activeFilters > 0 ? "Try clearing some of your filters to see more results." : "When customers place orders, they will appear here."}
+          </p>
+        </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border">
-          <table className="w-full min-w-[860px] text-sm">
-            <thead className="bg-muted/50 text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">Order</th>
-                <th className="px-4 py-3 text-left font-medium">Placed</th>
-                <th className="px-4 py-3 text-left font-medium">Customer</th>
-                <th className="px-4 py-3 text-left font-medium">Items</th>
-                <th className="px-4 py-3 text-left font-medium">Total</th>
-                <th className="px-4 py-3 text-left font-medium">Fulfilment</th>
-                <th className="px-4 py-3 text-left font-medium">Payment</th>
-                <th className="px-4 py-3 text-left font-medium"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {filtered.map((order) => {
-                const rxCount = order.lineItems.filter((i) => i.prescription).length;
-                return (
-                  <tr key={order.id} className="align-top">
-                    <td className="px-4 py-3 font-medium">{order.orderNumber}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{dateTime(order.createdAt)}</td>
-                    <td className="px-4 py-3">
-                      <div>{order.customerName}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {order.customerPhone} · {order.city}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {order.lineItems.reduce((n, i) => n + i.quantity, 0)}
-                      {rxCount > 0 && (
-                        <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                          {rxCount} Rx
+        <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border/60">
+                <tr>
+                  <th className="px-4 py-3.5">Order</th>
+                  <th className="px-4 py-3.5">Date</th>
+                  <th className="px-4 py-3.5">Customer & Delivery</th>
+                  <th className="px-4 py-3.5">Items</th>
+                  <th className="px-4 py-3.5">Total</th>
+                  <th className="px-4 py-3.5">Fulfillment Stage</th>
+                  <th className="px-4 py-3.5">Payment</th>
+                  <th className="px-4 py-3.5 text-right">Quick Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {filtered.map((order) => {
+                  const rxCount = order.lineItems.filter((i) => i.prescription).length;
+                  const isReadyOrShipped = order.status === "ready" || order.status === "shipped" || order.status === "processing";
+                  return (
+                    <tr key={order.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3.5 font-mono font-semibold text-foreground">
+                        {order.orderNumber}
+                      </td>
+                      <td className="px-4 py-3.5 text-muted-foreground whitespace-nowrap">
+                        {dateTime(order.createdAt)}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="font-semibold text-foreground">{order.customerName}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
+                          📞 {order.customerPhone || "N/A"} · {order.city}, {order.state}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="font-medium text-foreground">
+                          {order.lineItems.reduce((n, i) => n + i.quantity, 0)} items
                         </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">{inr(order.total)}</td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={order.status} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <PaymentBadge status={order.paymentStatus} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <Button variant="ghost" size="sm" onClick={() => setOpenOrder(order)}>
-                        View
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        {rxCount > 0 && (
+                          <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 text-[10px] font-semibold border border-purple-500/20">
+                            <Glasses className="h-3 w-3" /> {rxCount} Rx
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5 font-semibold text-foreground">
+                        {inr(order.total)}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <StatusBadge status={order.status} />
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <PaymentBadge status={order.paymentStatus} />
+                      </td>
+                      <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+                        {isReadyOrShipped && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setLabelOrder(order)}
+                            className="h-8 rounded-lg px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10"
+                            title="Print Shipping Label"
+                          >
+                            <Printer className="h-3.5 w-3.5 mr-1" />
+                            <span>Label</span>
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setOpenOrder(order)}
+                          className="h-8 rounded-lg px-3 text-xs font-semibold"
+                        >
+                          Manage
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       <Dialog open={!!openOrder} onOpenChange={(v) => !v && setOpenOrder(null)}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto rounded-3xl p-6">
           {openOrder && (
             <>
               <DialogHeader>
-                <DialogTitle>Order {openOrder.orderNumber}</DialogTitle>
+                <div className="flex items-center justify-between gap-4 flex-wrap pb-2 border-b border-border/60">
+                  <div>
+                    <DialogTitle className="font-display text-xl font-bold">Order {openOrder.orderNumber}</DialogTitle>
+                    <p className="text-xs text-muted-foreground mt-0.5">Placed on {dateTime(openOrder.createdAt)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLabelOrder(openOrder)}
+                      className="rounded-xl h-9 text-xs border-primary/40 text-primary hover:bg-primary/10"
+                    >
+                      <Printer className="h-3.5 w-3.5 mr-1.5" />
+                      Print Shipping Label
+                    </Button>
+                  </div>
+                </div>
               </DialogHeader>
               <OrderDetail
                 order={openOrder}
+                onPrintLabel={() => setLabelOrder(openOrder)}
                 onUpdate={() => {
                   setOpenOrder(null);
                   refetch();
@@ -263,22 +322,41 @@ function AdminOrders() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!labelOrder} onOpenChange={(v) => !v && setLabelOrder(null)}>
+        <DialogContent className="max-h-[95vh] max-w-2xl overflow-y-auto rounded-3xl p-6 sm:p-8">
+          {labelOrder && (
+            <ShippingLabelModal
+              order={labelOrder}
+              onClose={() => setLabelOrder(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function OrderDetail({ order, onUpdate }: { order: AdminOrderRow; onUpdate: () => void }) {
+function OrderDetail({
+  order,
+  onUpdate,
+}: {
+  order: AdminOrderRow;
+  onUpdate: () => void;
+  onPrintLabel: () => void;
+}) {
   const update = useServerFn(updateOrderStatus);
   const [status, setStatus] = useState(order.status);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
-  async function save() {
+  async function handleStatusChange(newStatus: string) {
+    setStatus(newStatus);
     setSaving(true);
     setError(false);
     try {
       await update({
-        data: { orderId: order.id, status, csrfToken: getCsrfToken() },
+        data: { orderId: order.id, status: newStatus, csrfToken: getCsrfToken() },
       });
       onUpdate();
     } catch {
@@ -288,60 +366,111 @@ function OrderDetail({ order, onUpdate }: { order: AdminOrderRow; onUpdate: () =
     }
   }
 
+  const customerPhoneClean = (order.customerPhone || "").replace(/\D/g, "");
+  const whatsappUrl = `https://wa.me/${customerPhoneClean.length === 10 ? `91${customerPhoneClean}` : customerPhoneClean}?text=${encodeURIComponent(
+    `Hi ${order.customerName},\nRegarding your Lens Master Order #${order.orderNumber}:\nStatus: ${STAGE_LABELS[status] || status}\n\nOur Jaipur optical team is at your service. Please let us know if you need any assistance!`
+  )}`;
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6 pt-2 text-xs">
       <Timeline
         status={order.status}
         createdAt={order.createdAt}
         updatedAt={order.updatedAt}
       />
 
+      <div className="rounded-2xl border border-border/80 bg-muted/40 p-4 space-y-2.5">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Update Fulfillment Stage
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {FULFILLMENT_STAGES.map((stage) => {
+            const isCurrent = order.status === stage;
+            return (
+              <Button
+                key={stage}
+                size="sm"
+                variant={isCurrent ? "default" : "outline"}
+                disabled={saving}
+                onClick={() => handleStatusChange(stage)}
+                className={`rounded-xl text-xs h-8.5 font-medium transition-all ${
+                  isCurrent ? "shadow-xs font-semibold" : "bg-card hover:bg-muted"
+                }`}
+              >
+                {STAGE_LABELS[stage] || stage}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border p-3">
-          <p className="text-xs text-muted-foreground">Customer</p>
-          <p className="font-medium">{order.customerName}</p>
-          <p className="text-sm text-muted-foreground">{order.customerPhone}</p>
-          {order.customerEmail && (
-            <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
+        <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-1.5 shadow-xs">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Customer</p>
+          <p className="font-bold text-sm text-foreground">{order.customerName}</p>
+          <div className="space-y-1 text-muted-foreground pt-1">
+            <p className="flex items-center gap-1.5 font-medium text-foreground">
+              📞 {order.customerPhone || "Not provided"}
+            </p>
+            {order.customerEmail && <p>✉️ {order.customerEmail}</p>}
+          </div>
+
+          {order.customerPhone && (
+            <div className="pt-2">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px] transition-colors"
+              >
+                <MessageCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Message Customer on WhatsApp</span>
+              </a>
+            </div>
           )}
         </div>
-        <div className="rounded-lg border p-3">
-          <p className="text-xs text-muted-foreground">Address</p>
-          <p className="text-sm">
+
+        <div className="rounded-2xl border border-border/80 bg-card p-4 space-y-1.5 shadow-xs">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Delivery Destination</p>
+          <p className="text-foreground leading-relaxed font-medium pt-1">
             {order.address1}
             {order.address2 ? `, ${order.address2}` : ""}
             <br />
-            {order.city}, {order.state} — {order.pincode}
+            {order.city}, {order.state} — <strong className="text-foreground font-semibold">{order.pincode}</strong>
+            <br />
+            <span className="text-[11px] text-muted-foreground">India</span>
           </p>
         </div>
       </div>
 
-      <div className="rounded-lg border p-3 text-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">Payment</span>
+      <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border/50 pb-2.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Payment Summary</span>
           <PaymentBadge status={order.paymentStatus} />
         </div>
-        <dl className="mt-2 grid gap-1 text-muted-foreground">
+        <dl className="mt-3 grid gap-1.5 text-muted-foreground">
           <div className="flex justify-between">
             <dt>Subtotal</dt>
-            <dd>{inr(order.subtotal)}</dd>
+            <dd className="text-foreground font-medium">{inr(order.subtotal)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt>Delivery</dt>
-            <dd>{inr(order.deliveryFee)}</dd>
+            <dt>Delivery Fee</dt>
+            <dd className="text-foreground font-medium">{inr(order.deliveryFee)}</dd>
           </div>
-          <div className="flex justify-between font-medium text-foreground">
-            <dt>Total</dt>
-            <dd>{inr(order.total)}</dd>
+          <div className="flex justify-between font-bold text-foreground text-sm pt-2 border-t border-border/50">
+            <dt>Total Amount</dt>
+            <dd className="text-emerald-600 dark:text-emerald-400">{inr(order.total)}</dd>
           </div>
         </dl>
         {order.note && (
-          <p className="mt-2 break-all text-xs text-muted-foreground">{order.note}</p>
+          <p className="mt-3 p-2.5 rounded-xl bg-muted/50 text-[11px] text-muted-foreground border border-border/40">
+            <strong>Notes:</strong> {order.note}
+          </p>
         )}
       </div>
 
-      <div>
-        <p className="mb-2 text-sm font-medium">Items</p>
+      <div className="space-y-3">
+        <p className="font-semibold text-foreground text-sm">Ordered Eyewear & Lenses</p>
         <ul className="space-y-3">
           {order.lineItems.map((item) => (
             <ItemRow key={item.id} item={item} />
@@ -349,44 +478,26 @@ function OrderDetail({ order, onUpdate }: { order: AdminOrderRow; onUpdate: () =
         </ul>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-xs text-muted-foreground">Order status</label>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[...FULFILLMENT_STAGES, "cancelled"].map((s) => (
-              <SelectItem key={s} value={s} className="capitalize">
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {error && (
-        <p className="text-sm text-destructive">We couldn't save that. Please try again.</p>
+        <p className="text-xs font-semibold text-destructive">
+          Failed to update order status. Please try again.
+        </p>
       )}
-
-      <Button onClick={save} disabled={saving} className="w-full rounded-full">
-        {saving ? "Saving…" : "Update order"}
-      </Button>
     </div>
   );
 }
 
 function ItemRow({ item }: { item: AdminOrderItem }) {
   return (
-    <li className="rounded-lg border p-3 text-sm">
-      <div className="flex items-start justify-between gap-3">
+    <li className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <p className="font-medium">{item.title}</p>
-          <p className="text-xs text-muted-foreground">
-            {item.variantTitle || "Standard"}
+          <p className="font-bold text-sm text-foreground">{item.title}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {item.variantTitle ? `Variant: ${item.variantTitle}` : "Standard Specification"}
           </p>
         </div>
-        <span className="whitespace-nowrap text-muted-foreground">
+        <span className="font-semibold text-foreground text-sm">
           {item.quantity} × {inr(item.price)}
         </span>
       </div>
@@ -398,62 +509,54 @@ function ItemRow({ item }: { item: AdminOrderItem }) {
 function PrescriptionTable({ rx }: { rx: AdminPrescription }) {
   const fmt = (v: number | null) => (v === null || v === undefined ? "—" : String(v));
   return (
-    <div className="mt-3 rounded-md bg-muted/40 p-3">
-      <p className="text-xs font-medium capitalize">Prescription · {rx.product_type}</p>
-      <table className="mt-2 w-full text-xs">
-        <thead className="text-muted-foreground">
-          <tr>
-            <th className="py-1 text-left font-medium">Eye</th>
-            <th className="py-1 text-left font-medium">SPH</th>
-            <th className="py-1 text-left font-medium">CYL</th>
-            <th className="py-1 text-left font-medium">AXIS</th>
-            <th className="py-1 text-left font-medium">ADD</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="py-1">Right (OD)</td>
-            <td>{fmt(rx.right_sph)}</td>
-            <td>{fmt(rx.right_cyl)}</td>
-            <td>{fmt(rx.right_axis)}</td>
-            <td>{fmt(rx.right_add)}</td>
-          </tr>
-          <tr>
-            <td className="py-1">Left (OS)</td>
-            <td>{fmt(rx.left_sph)}</td>
-            <td>{fmt(rx.left_cyl)}</td>
-            <td>{fmt(rx.left_axis)}</td>
-            <td>{fmt(rx.left_add)}</td>
-          </tr>
-        </tbody>
-      </table>
-      <p className="mt-2 text-xs text-muted-foreground">
-        PD: {rx.pd_type === "dual" ? `${fmt(rx.right_pd)} / ${fmt(rx.left_pd)}` : fmt(rx.pd)}
+    <div className="mt-3 rounded-xl bg-muted/40 p-3.5 border border-border/50">
+      <p className="text-xs font-bold text-foreground capitalize">Prescription Parameters · {rx.product_type}</p>
+      <div className="overflow-x-auto mt-2">
+        <table className="w-full text-xs">
+          <thead className="text-muted-foreground font-semibold">
+            <tr>
+              <th className="py-1 text-left">Eye</th>
+              <th className="py-1 text-left">SPH</th>
+              <th className="py-1 text-left">CYL</th>
+              <th className="py-1 text-left">AXIS</th>
+              <th className="py-1 text-left">ADD</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/40 font-mono">
+            <tr>
+              <td className="py-1 font-sans font-medium text-foreground">Right (OD)</td>
+              <td>{fmt(rx.right_sph)}</td>
+              <td>{fmt(rx.right_cyl)}</td>
+              <td>{fmt(rx.right_axis)}</td>
+              <td>{fmt(rx.right_add)}</td>
+            </tr>
+            <tr>
+              <td className="py-1 font-sans font-medium text-foreground">Left (OS)</td>
+              <td>{fmt(rx.left_sph)}</td>
+              <td>{fmt(rx.left_cyl)}</td>
+              <td>{fmt(rx.left_axis)}</td>
+              <td>{fmt(rx.left_add)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2.5 text-xs text-muted-foreground">
+        <strong>Pupillary Distance (PD):</strong> {rx.pd_type === "dual" ? `${fmt(rx.right_pd)} / ${fmt(rx.left_pd)} mm` : `${fmt(rx.pd)} mm`}
       </p>
-      {rx.notes && <p className="mt-1 text-xs text-muted-foreground">Notes: {rx.notes}</p>}
-      {rx.photo_url && safeHref(rx.photo_url) && (
+      {rx.notes && <p className="mt-1 text-xs text-muted-foreground"><strong>Optician Notes:</strong> {rx.notes}</p>}
+      {rx.photo_url && (
         <a
-          href={safeHref(rx.photo_url)!}
+          href={rx.photo_url}
           target="_blank"
           rel="noreferrer"
-          className="mt-1 inline-block text-xs underline"
+          className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary underline"
         >
-          View prescription photo
+          <span>View Prescription Photo</span>
+          <ExternalLink className="h-3 w-3" />
         </a>
       )}
     </div>
   );
-}
-
-/** Only allow http(s) prescription photo links — blocks javascript:/data: URLs. */
-function safeHref(url: string | null): string | null {
-  if (!url) return null;
-  try {
-    const parsed = new URL(url, window.location.origin);
-    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.href : null;
-  } catch {
-    return null;
-  }
 }
 
 function Timeline({
@@ -467,37 +570,47 @@ function Timeline({
 }) {
   if (status === "cancelled") {
     return (
-      <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-        Cancelled on {dateTime(updatedAt)}
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs font-semibold text-rose-800 dark:text-rose-300">
+        ❌ Order Cancelled on {dateTime(updatedAt)}
       </div>
     );
   }
-  const current = FULFILLMENT_STAGES.indexOf(status as (typeof FULFILLMENT_STAGES)[number]);
+
+  const current = FULFILLMENT_STAGES.indexOf(status as FulfillmentStage);
+
   return (
-    <ol className="flex flex-wrap gap-3 rounded-lg border p-3">
+    <ol className="grid grid-cols-2 sm:grid-cols-5 gap-2 rounded-2xl border border-border/80 bg-card p-3 shadow-xs">
       {FULFILLMENT_STAGES.map((stage, index) => {
         const done = current >= 0 && index <= current;
         const isCurrent = index === current;
         return (
-          <li key={stage} className="flex min-w-[110px] flex-1 items-start gap-2">
-            <span
-              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                done
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-muted-foreground/30 text-muted-foreground"
-              }`}
-            >
-              {isCurrent ? <CircleDot className="h-3 w-3" /> : done ? <Check className="h-3 w-3" /> : null}
-            </span>
-            <div>
-              <p className={`text-xs capitalize ${done ? "font-medium" : "text-muted-foreground"}`}>
-                {stage}
+          <li
+            key={stage}
+            className={`p-2.5 rounded-xl border transition-colors ${
+              isCurrent
+                ? "bg-primary/10 border-primary/40 text-primary"
+                : done
+                  ? "bg-muted/60 border-border/60 text-foreground"
+                  : "bg-muted/20 border-transparent text-muted-foreground opacity-60"
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] ${
+                  done ? "bg-primary text-primary-foreground font-bold" : "border border-muted-foreground"
+                }`}
+              >
+                {done ? "✓" : index + 1}
+              </span>
+              <p className="text-[11px] font-bold capitalize truncate">
+                {STAGE_LABELS[stage] || stage}
               </p>
-              {index === 0 && <p className="text-[11px] text-muted-foreground">{dateTime(createdAt)}</p>}
-              {isCurrent && index > 0 && (
-                <p className="text-[11px] text-muted-foreground">{dateTime(updatedAt)}</p>
-              )}
             </div>
+            {isCurrent && (
+              <p className="text-[10px] text-muted-foreground mt-1 truncate">
+                Active Stage
+              </p>
+            )}
           </li>
         );
       })}
@@ -505,36 +618,99 @@ function Timeline({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const color =
-    status === "delivered"
-      ? "bg-emerald-100 text-emerald-700"
-      : status === "shipped" || status === "processing" || status === "confirmed"
-        ? "bg-sky-100 text-sky-700"
-        : status === "pending"
-          ? "bg-amber-100 text-amber-700"
-          : status === "cancelled"
-            ? "bg-rose-100 text-rose-700"
-            : "bg-slate-100 text-slate-700";
+function ShippingLabelModal({
+  order,
+  onClose,
+}: {
+  order: AdminOrderRow;
+  onClose: () => void;
+}) {
+  const printRef = useRef<HTMLDivElement>(null);
+  function handlePrint() { window.print(); }
+
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${color}`}>
-      {status}
-    </span>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-3 no-print">
+        <div>
+          <h2 className="font-display text-lg font-bold">Shipping Label & Packing Slip</h2>
+          <p className="text-xs text-muted-foreground">Order Reference #{order.orderNumber}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={handlePrint} className="rounded-xl px-5 font-bold shadow-xs">
+            <Printer className="h-4 w-4 mr-2" />
+            Print Label (4x6 / A5)
+          </Button>
+        </div>
+      </div>
+
+      <div
+        ref={printRef}
+        id="shipping-label-printable"
+        className="rounded-2xl border-2 border-dashed border-zinc-950/80 bg-white text-zinc-950 p-6 sm:p-8 font-sans shadow-sm print:border-solid print:p-4 print:shadow-none"
+      >
+        <div className="flex items-start justify-between border-b-2 border-zinc-950 pb-4">
+          <div>
+            <span className="font-display text-2xl font-black tracking-tight uppercase">Lens Master</span>
+            <p className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mt-0.5">by The Swadesh • Jaipur Optical Showroom</p>
+          </div>
+          <div className="text-right">
+            <span className="inline-block border-2 border-zinc-950 px-2.5 py-1 text-xs font-black uppercase tracking-wider rounded-md">PREPAID</span>
+            <p className="text-[11px] font-mono font-bold mt-1">Ref: #{order.orderNumber}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 py-4 border-b-2 border-zinc-950 text-xs">
+          <div className="pr-3 border-r-2 border-zinc-950/40 space-y-1">
+            <span className="font-bold uppercase tracking-wider text-[10px] text-zinc-500">FROM (DISPATCH LAB):</span>
+            <p className="font-bold text-sm text-zinc-950 leading-tight">LENS MASTER SHOWROOM</p>
+            <p className="text-zinc-700 leading-relaxed text-[11px]">B-51, Lal Kothi Shopping Centre, Laxmi Colony,<br />Lalkothi, Jaipur, Rajasthan — <strong>302015</strong></p>
+            <p className="font-semibold text-zinc-800 text-[11px] pt-1">📞 +91 98292 30548 • 0141-4112904</p>
+          </div>
+          <div className="pl-1 space-y-1">
+            <span className="font-bold uppercase tracking-wider text-[10px] text-zinc-500">DELIVER TO:</span>
+            <p className="font-black text-sm text-zinc-950 leading-tight">{order.customerName.toUpperCase()}</p>
+            <p className="font-bold text-zinc-900 text-xs">📞 {order.customerPhone || "N/A"}</p>
+            <p className="text-zinc-800 leading-relaxed text-[11px] pt-0.5">{order.address1}{order.address2 ? `, ${order.address2}` : ""}<br /><strong>{order.city.toUpperCase()}, {order.state.toUpperCase()}</strong><br />PINCODE: <strong className="text-sm font-black tracking-wider">{order.pincode}</strong></p>
+          </div>
+        </div>
+
+        <div className="py-4 border-b-2 border-zinc-950 text-xs space-y-2">
+          <span className="font-bold uppercase tracking-wider text-[10px] text-zinc-500">PARCEL CONTENTS & OPTICAL SPECIFICATION:</span>
+          <div className="space-y-1.5">
+            {order.lineItems.map((item, idx) => (
+              <div key={item.id} className="flex justify-between items-start text-xs">
+                <div>
+                  <span className="font-bold text-zinc-950">{idx + 1}. {item.title}</span>
+                  {item.variantTitle && <span className="text-zinc-600 block text-[11px]">↳ Variant: {item.variantTitle}</span>}
+                </div>
+                <span className="font-mono font-bold text-zinc-900">Qty: {item.quantity}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="pt-4 flex items-center justify-between text-xs">
+          <div className="space-y-1">
+            <div className="font-mono tracking-widest text-lg font-black uppercase">*LM-{order.orderNumber.replace(/\D/g, "") || "000"}*</div>
+            <p className="text-[10px] font-bold text-zinc-600 uppercase">⚠️ FRAGILE: OPTICAL GLASSES • HANDLE WITH CARE</p>
+          </div>
+          <div className="text-right text-[11px]">
+            <p className="font-bold text-zinc-950">Package: 1 of 1</p>
+            <p className="text-zinc-600 text-[10px]">{new Date().toLocaleDateString("en-IN")}</p>
+          </div>
+        </div>
+      </div>
+      <style>{`@media print { body * { visibility: hidden !important; } #shipping-label-printable, #shipping-label-printable * { visibility: visible !important; } #shipping-label-printable { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; max-width: 100% !important; border: 2px solid #000 !important; padding: 24px !important; box-shadow: none !important; background: white !important; color: black !important; } .no-print { display: none !important; } }`}</style>
+    </div>
   );
 }
 
+function StatusBadge({ status }: { status: string }) {
+  const color = status === "delivered" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" : status === "ready" ? "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20" : status === "shipped" ? "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20" : status === "processing" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20" : status === "cancelled" ? "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20" : "bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20";
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize border ${color}`}>{STAGE_LABELS[status] || status}</span>;
+}
+
 function PaymentBadge({ status }: { status: string }) {
-  const color =
-    status === "paid"
-      ? "bg-emerald-100 text-emerald-700"
-      : status === "failed"
-        ? "bg-rose-100 text-rose-700"
-        : status === "refunded"
-          ? "bg-slate-200 text-slate-700"
-          : "bg-amber-100 text-amber-700";
-  return (
-    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${color}`}>
-      {status}
-    </span>
-  );
+  const color = status === "paid" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" : status === "failed" ? "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20" : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20";
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize border ${color}`}>{status === "paid" ? "PAID" : status}</span>;
 }

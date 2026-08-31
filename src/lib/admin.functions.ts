@@ -300,7 +300,7 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     const { requireCsrf } = await import("./admin/security.server");
     await requireCsrf(ctx, data?.csrfToken ?? "");
 
-    const ALLOWED = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
+    const ALLOWED = ["pending", "confirmed", "processing", "ready", "shipped", "delivered", "cancelled"];
     if (!ALLOWED.includes(data.status)) throw new Error("ADMIN_UPDATE_FAILED");
 
     const client = await adminDb();

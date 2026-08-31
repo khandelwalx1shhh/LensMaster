@@ -81,8 +81,8 @@ export interface AdminOrderRow {
 /** Ordered fulfillment stages used by the admin timeline. */
 export const FULFILLMENT_STAGES = [
   "pending",
-  "confirmed",
   "processing",
+  "ready",
   "shipped",
   "delivered",
 ] as const;
