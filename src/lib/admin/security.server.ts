@@ -94,7 +94,7 @@ export function appSecret(): string {
 
 export async function signJwtLike(payload: Record<string, any>): Promise<string> {
   const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  const sig = await hmacSha256(data, appSecret());
+  const sig = await hmacHex(appSecret(), data);
   return `${data}.${sig}`;
 }
 
@@ -102,7 +102,7 @@ export async function verifyJwtLike<T>(token: string): Promise<T | null> {
   try {
     const [data, sig] = token.split(".");
     if (!data || !sig) return null;
-    const expected = await hmacSha256(data, appSecret());
+    const expected = await hmacHex(appSecret(), data);
     if (!timingSafeEqualHex(sig, expected)) return null;
     const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf8"));
     if (payload.exp && Date.now() > payload.exp) return null;
