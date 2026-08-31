@@ -11,8 +11,11 @@ import {
   isBlueCutOfferProduct,
   BLUE_CUT_BUNDLE_DISCOUNT,
 } from "@/lib/shopify";
+import { useCartStore } from "@/stores/cartStore";
+import { checkoutSchema } from "@/lib/validation";
 
 export const Route = createFileRoute("/checkout")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Secure Checkout — Lens Master" },
@@ -67,10 +70,13 @@ function CheckoutPage() {
   const [pinLookup, setPinLookup] = useState<"idle" | "loading" | "done" | "error">("idle");
   const lastPinRef = useRef("");
 
-  const currency = items[0]?.price.currencyCode ?? "INR";
-  const bundle = calculateBlueCutBundle(items);
-  const subtotal = items.reduce((s, i) => s + parseFloat(i.price.amount) * i.quantity, 0);
-  const total = bundle.finalTotal + DELIVERY_FEE;
+  const currency = items?.[0]?.price?.currencyCode ?? "INR";
+  const bundle = calculateBlueCutBundle(items ?? []);
+  const subtotal = (items ?? []).reduce(
+    (s, i) => s + parseFloat(i?.price?.amount || "0") * (i?.quantity || 1),
+    0,
+  );
+  const total = (bundle?.finalTotal || 0) + DELIVERY_FEE;
 
   const set = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -160,15 +166,18 @@ function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          lines: items.map((i) => ({
-            variantId: i.variantId,
-            quantity: i.quantity,
-            unitPrice: parseFloat(i.price.amount),
-            title: i.product.node.title,
-            variantTitle: i.variantTitle,
-            blueCutOffer: isBlueCutOfferProduct(i.product.node),
-            attributes: i.attributes ?? [],
-          })),
+          lines: items.map((i) => {
+            const prod = (i?.product as any)?.node ?? i?.product;
+            return {
+              variantId: i.variantId,
+              quantity: i.quantity || 1,
+              unitPrice: parseFloat(i.price?.amount || "0"),
+              title: prod?.title || "Item",
+              variantTitle: i.variantTitle || "",
+              blueCutOffer: isBlueCutOfferProduct(prod),
+              attributes: i.attributes ?? [],
+            };
+          }),
           customer: {
             name: form.name.trim(),
             phone: form.phone.trim(),
@@ -405,21 +414,24 @@ function CheckoutPage() {
 
           <ul className="mt-4 space-y-3">
             {items.map((item) => {
-              const isOffer = isBlueCutOfferProduct(item.product.node);
-              const lineTotal = parseFloat(item.price.amount) * item.quantity;
-              const hasPairDiscount = isOffer && item.quantity >= 2;
+              const prod = (item?.product as any)?.node ?? item?.product;
+              const isOffer = isBlueCutOfferProduct(prod);
+              const unitPrice = parseFloat(item?.price?.amount || "0");
+              const qty = item?.quantity || 1;
+              const lineTotal = unitPrice * qty;
+              const hasPairDiscount = isOffer && qty >= 2;
               const pairDiscount = hasPairDiscount
-                ? Math.floor(item.quantity / 2) * BLUE_CUT_BUNDLE_DISCOUNT
+                ? Math.floor(qty / 2) * BLUE_CUT_BUNDLE_DISCOUNT
                 : 0;
 
               return (
                 <li
-                  key={item.lineId ?? item.variantId}
+                  key={item?.lineId ?? item?.variantId}
                   className="flex items-start justify-between gap-3 text-[13px]"
                 >
                   <span className="min-w-0">
-                    <span className="block truncate font-medium">{item.product.node.title}</span>
-                    <span className="text-muted-foreground text-xs">Qty {item.quantity}</span>
+                    <span className="block truncate font-medium">{prod?.title || "Item"}</span>
+                    <span className="text-muted-foreground text-xs">Qty {qty}</span>
                     {isOffer && (
                       <span className="block text-[10px] uppercase font-semibold text-gold tracking-wider mt-0.5">
                         ✨ Blue Cut Offer

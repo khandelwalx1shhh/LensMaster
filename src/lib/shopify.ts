@@ -173,8 +173,9 @@ export function isHighPowerRx(
   return false;
 }
 
-export function isBlueCutOfferProduct(product?: ShopifyProduct["node"] | null): boolean {
-  return !!product?.tags?.includes(BLUE_CUT_OFFER_TAG);
+export function isBlueCutOfferProduct(product?: ShopifyProduct["node"] | ShopifyProduct | null): boolean {
+  const node = (product as any)?.node ?? product;
+  return !!node?.tags?.includes(BLUE_CUT_OFFER_TAG);
 }
 
 export interface BlueCutBundleSummary {
@@ -194,10 +195,11 @@ export function calculateBlueCutBundle(
   let regularTotal = 0;
   let regularQty = 0;
 
-  for (const item of items) {
-    const qty = item.quantity;
-    const unitPrice = parseFloat(item.price.amount);
-    if (isBlueCutOfferProduct(item.product.node)) {
+  for (const item of items ?? []) {
+    const qty = item?.quantity || 1;
+    const unitPrice = parseFloat(item?.price?.amount || "0") || 0;
+    const prod = (item?.product as any)?.node ?? item?.product;
+    if (isBlueCutOfferProduct(prod)) {
       offerQty += qty;
       offerTotalBeforeDiscount += unitPrice * qty;
     } else {

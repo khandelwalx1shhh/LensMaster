@@ -101,23 +101,26 @@ export function CartDrawer() {
             <div className="flex-1 overflow-y-auto">
               <ul className="divide-y">
                 {items.map((item) => {
-                  const img = item.product.node.images?.edges?.[0]?.node;
-                  const lineTotal = parseFloat(item.price.amount) * item.quantity;
-                  const isOffer = isBlueCutOfferProduct(item.product.node);
+                  const prod = (item.product as any)?.node ?? item.product;
+                  const img = prod?.images?.edges?.[0]?.node;
+                  const lineTotal = parseFloat(item.price?.amount || "0") * (item.quantity || 1);
+                  const isOffer = isBlueCutOfferProduct(prod);
                   const attrs = (item.attributes ?? []).filter((a) => a.value && !a.key.startsWith("_"));
                   const rowKey = item.lineId ?? `${item.variantId}-${JSON.stringify(item.attributes ?? [])}`;
+                  const handle = prod?.handle || "";
+                  const title = prod?.title || "Product";
                   return (
                     <li key={rowKey} className="flex gap-4 px-5 py-5">
                       <Link
                         to="/product/$handle"
-                        params={{ handle: item.product.node.handle }}
+                        params={{ handle }}
                         onClick={() => setOpen(false)}
                         className="w-[92px] h-[92px] rounded-lg bg-surface overflow-hidden shrink-0 group"
                       >
                         {img && (
                           <img
                             src={img.url}
-                            alt={img.altText ?? item.product.node.title}
+                            alt={img.altText ?? title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         )}
@@ -127,11 +130,11 @@ export function CartDrawer() {
                           <div className="min-w-0">
                             <Link
                               to="/product/$handle"
-                              params={{ handle: item.product.node.handle }}
+                              params={{ handle }}
                               onClick={() => setOpen(false)}
                               className="text-[14px] font-medium leading-snug line-clamp-2 hover:underline underline-offset-2"
                             >
-                              {item.product.node.title}
+                              {title}
                             </Link>
                             {item.selectedOptions.length > 0 && (
                               <p className="text-[11px] uppercase tracking-wider text-muted-foreground mt-1">
