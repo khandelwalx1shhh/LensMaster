@@ -35,7 +35,43 @@ export const Route = createFileRoute("/checkout")({
     ],
   }),
   component: CheckoutPage,
+  errorComponent: CheckoutErrorFallback,
 });
+
+function CheckoutErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+  const clearCart = useCartStore((s) => s.clearCart);
+  return (
+    <section className="mx-auto max-w-2xl px-5 py-24 text-center">
+      <h1 className="font-display text-2xl tracking-tight">Checkout encountered an issue</h1>
+      <p className="mt-3 text-sm text-muted-foreground">
+        We encountered a problem loading your checkout details.
+      </p>
+      {error?.message && (
+        <p className="mt-2 text-xs text-destructive bg-destructive/10 p-2 rounded max-w-md mx-auto">
+          {error.message}
+        </p>
+      )}
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <Button onClick={() => reset()} className="rounded-full px-6">
+          Try again
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            clearCart();
+            window.location.assign("/shop");
+          }}
+          className="rounded-full px-6"
+        >
+          Reset bag &amp; browse shop
+        </Button>
+        <Button variant="ghost" asChild className="rounded-full px-6">
+          <Link to="/">Go home</Link>
+        </Button>
+      </div>
+    </section>
+  );
+}
 
 const DELIVERY_FEE = 99;
 
@@ -63,20 +99,23 @@ const EMPTY: FormState = {
 
 function CheckoutPage() {
   const navigate = useNavigate();
-  const items = useCartStore((s) => s.items);
+  const rawItems = useCartStore((s) => s.items);
+  const items = Array.isArray(rawItems)
+    ? rawItems.filter((i) => i && typeof i === "object")
+    : [];
   const [form, setForm] = useState<FormState>({ ...EMPTY });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [pinLookup, setPinLookup] = useState<"idle" | "loading" | "done" | "error">("idle");
   const lastPinRef = useRef("");
 
-  const currency = items?.[0]?.price?.currencyCode ?? "INR";
-  const bundle = calculateBlueCutBundle(items ?? []);
-  const subtotal = (items ?? []).reduce(
-    (s, i) => s + parseFloat(i?.price?.amount || "0") * (i?.quantity || 1),
+  const currency = items[0]?.price?.currencyCode ?? "INR";
+  const bundle = calculateBlueCutBundle(items);
+  const subtotal = items.reduce(
+    (s, i) => s + (parseFloat(i?.price?.amount || "0") || 0) * (i?.quantity || 1),
     0,
   );
-  const total = (bundle?.finalTotal || 0) + DELIVERY_FEE;
+  const total = (bundle?.finalTotal || subtotal) + DELIVERY_FEE;
 
   const set = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((f) => ({ ...f, [key]: e.target.value }));

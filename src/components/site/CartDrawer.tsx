@@ -281,18 +281,20 @@ export function CartDrawer() {
               </div>
 
               <Button
-                onClick={checkout}
-                disabled={isLoading}
+                asChild
+                disabled={isLoading || items.length === 0}
                 className="w-full h-12 rounded-full text-[14px] font-medium group"
               >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    Secure Checkout
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
-                  </>
-                )}
+                <Link to="/checkout" onClick={() => setOpen(false)}>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      Secure Checkout
+                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
+                    </>
+                  )}
+                </Link>
               </Button>
 
               <button
