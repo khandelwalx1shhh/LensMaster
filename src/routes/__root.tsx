@@ -5,12 +5,12 @@ import {
   createRootRouteWithContext,
   useRouter,
   useRouterState,
-
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "sonner";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -89,14 +89,18 @@ import {
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => {
     const googleVerification =
-      (typeof process !== "undefined" && (process.env?.VITE_GOOGLE_SITE_VERIFICATION || process.env?.GOOGLE_SITE_VERIFICATION)) ||
+      (typeof process !== "undefined" &&
+        (process.env?.VITE_GOOGLE_SITE_VERIFICATION || process.env?.GOOGLE_SITE_VERIFICATION)) ||
       "";
 
     const meta: Array<Record<string, string>> = [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#111111" },
-      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
+      {
+        name: "robots",
+        content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+      },
       { name: "author", content: "Lens Master by The Swadesh" },
       {
         name: "keywords",
@@ -113,7 +117,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: DEFAULT_OG_IMAGE },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "Lens Master — Premium Eyewear & Optical Store in Jaipur" },
+      {
+        property: "og:image:alt",
+        content: "Lens Master — Premium Eyewear & Optical Store in Jaipur",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: DEFAULT_OG_IMAGE },
     ];
@@ -163,6 +170,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <SpeedInsights />
         <Scripts />
       </body>
     </html>
@@ -196,7 +204,6 @@ function AppFrame() {
     </>
   );
 }
-
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
