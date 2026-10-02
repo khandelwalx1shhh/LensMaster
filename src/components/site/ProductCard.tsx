@@ -55,7 +55,7 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
   return (
     <>
       <Link to="/product/$handle" params={{ handle: p.handle }} className="group block">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-surface">
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-white">
           {img && (
             <img
               src={cdnImage(img.url, 640)}
@@ -64,7 +64,7 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
               loading="lazy"
               decoding="async"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 group-hover:opacity-0 ${sellable ? "" : "grayscale-[0.4] opacity-80"}`}
+              className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-500 group-hover:opacity-0 ${sellable ? "" : "grayscale-[0.4] opacity-80"}`}
             />
           )}
           {img2 && (
@@ -75,7 +75,7 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
               loading="lazy"
               decoding="async"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              className="absolute inset-0 h-full w-full object-contain object-center opacity-0 transition-opacity duration-500 group-hover:opacity-100"
             />
           )}
 

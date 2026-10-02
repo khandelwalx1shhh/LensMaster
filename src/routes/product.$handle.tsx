@@ -202,11 +202,11 @@ function ProductPage() {
                 <button
                   key={i}
                   onClick={() => setActiveImg(i)}
-                  className={`aspect-square rounded-lg overflow-hidden bg-surface border-2 transition ${
+                  className={`aspect-square rounded-lg overflow-hidden bg-white border-2 transition ${
                     activeImg === i ? "border-foreground" : "border-transparent"
                   }`}
                 >
-                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                  <img src={img.url} alt="" className="w-full h-full object-contain object-center" />
                 </button>
               ))}
             </div>
@@ -319,7 +319,7 @@ function ProductPage() {
 function ZoomImage({ src, alt }: { src?: string; alt: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  if (!src) return <div className="aspect-square rounded-2xl bg-surface" />;
+  if (!src) return <div className="aspect-square rounded-2xl bg-white" />;
   return (
     <div
       ref={ref}
@@ -328,12 +328,12 @@ function ZoomImage({ src, alt }: { src?: string; alt: string }) {
         setPos({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
       }}
       onMouseLeave={() => setPos(null)}
-      className="aspect-square rounded-2xl overflow-hidden bg-surface cursor-zoom-in relative"
+      className="aspect-square rounded-2xl overflow-hidden bg-white cursor-zoom-in relative"
     >
       <img
         src={src}
         alt={alt}
-        className="w-full h-full object-cover transition-transform duration-200 will-change-transform"
+        className="w-full h-full object-contain object-center transition-transform duration-200 will-change-transform"
         style={pos ? { transform: "scale(2)", transformOrigin: `${pos.x}% ${pos.y}%` } : undefined}
       />
     </div>
