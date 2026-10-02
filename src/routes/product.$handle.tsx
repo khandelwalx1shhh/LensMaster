@@ -14,6 +14,7 @@ import {
 } from "@/lib/shopify";
 import { useCartStore } from "@/stores/cartStore";
 import { LensSelectionDialog } from "@/components/site/LensSelectionDialog";
+import { ProductSizeSpec } from "@/components/site/ProductSizeSpec";
 import { ReviewsSection } from "@/components/site/ReviewsSection";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { sanitizeHtml } from "@/lib/sanitize";
@@ -278,6 +279,8 @@ function ProductPage() {
               </div>
             </div>
           )}
+
+          <ProductSizeSpec product={product} />
 
           <button
             onClick={handleAdd}
