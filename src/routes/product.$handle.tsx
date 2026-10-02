@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Loader2, Truck, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Loader2, Truck, ShieldCheck, ZoomIn, ZoomOut } from "lucide-react";
 import {
   discountPercent,
   fetchProductByHandle,
@@ -319,23 +319,69 @@ function ProductPage() {
 function ZoomImage({ src, alt }: { src?: string; alt: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  // Reset zoom whenever image changes
+  useEffect(() => {
+    setPos(null);
+  }, [src]);
+
   if (!src) return <div className="aspect-square rounded-2xl bg-white" />;
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isTouchDevice) return;
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    setPos({
+      x: ((e.clientX - r.left) / r.width) * 100,
+      y: ((e.clientY - r.top) / r.height) * 100,
+    });
+  };
+
+  const handleToggleZoom = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (pos) {
+      setPos(null);
+    } else {
+      const r = ref.current?.getBoundingClientRect();
+      if (!r) return;
+      setPos({
+        x: ((e.clientX - r.left) / r.width) * 100,
+        y: ((e.clientY - r.top) / r.height) * 100,
+      });
+    }
+  };
+
   return (
     <div
       ref={ref}
-      onMouseMove={(e) => {
-        const r = ref.current!.getBoundingClientRect();
-        setPos({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
-      }}
+      onTouchStart={() => setIsTouchDevice(true)}
+      onMouseMove={handleMouseMove}
       onMouseLeave={() => setPos(null)}
-      className="aspect-square rounded-2xl overflow-hidden bg-white cursor-zoom-in relative"
+      onClick={handleToggleZoom}
+      className={`aspect-square rounded-2xl overflow-hidden bg-white relative select-none ${
+        pos ? "cursor-zoom-out" : "cursor-zoom-in"
+      }`}
     >
       <img
         src={src}
         alt={alt}
-        className="w-full h-full object-contain object-center transition-transform duration-200 will-change-transform"
+        className="w-full h-full object-contain object-center transition-transform duration-200 will-change-transform pointer-events-none"
         style={pos ? { transform: "scale(2)", transformOrigin: `${pos.x}% ${pos.y}%` } : undefined}
       />
+      {pos && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setPos(null);
+          }}
+          className="absolute bottom-3 right-3 sm:hidden inline-flex items-center gap-1.5 rounded-full bg-black/80 px-3 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur z-10 active:scale-95 transition-transform"
+          aria-label="Zoom out"
+        >
+          <ZoomOut className="h-3.5 w-3.5" />
+          Tap to zoom out
+        </button>
+      )}
     </div>
   );
 }
