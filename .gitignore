@@ -19,6 +19,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+*.csv
 
 # Wrangler / Cloudflare
 .wrangler/
@@ -34,6 +35,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-.vercel
-.env*
