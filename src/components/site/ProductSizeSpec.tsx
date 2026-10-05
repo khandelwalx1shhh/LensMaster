@@ -22,48 +22,83 @@ export function getFrameDimensions(product?: ShopifyProduct["node"] | null): Fra
   const category = getProductCategory(product);
   if (category === "contact-lens") return null;
 
+  let lens: number | null = null;
+  let bridge: number | null = null;
+  let temple: number | null = null;
+  let frameWidth: number | null = null;
+
+  // 1. Gather all text sources (descriptionHtml stripped of tags, description, title, SKU, tags)
+  const rawHtml = product.descriptionHtml ?? "";
+  const cleanHtmlText = rawHtml.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ");
+  const desc = product.description ?? "";
+  const title = product.title ?? "";
+  const sku = product.variants?.edges?.[0]?.node?.sku ?? "";
+  const tags = (product.tags ?? []).join(" ");
+
+  const fullText = `${cleanHtmlText} \n ${desc} \n ${title} \n ${sku} \n ${tags}`;
+
+  // 2. Try matching explicit triplet size: "49-18-143", "49–18–143" (en-dash), "49—18—143" (em-dash), "49/18/143", "49 □ 18 143"
+  const tripletMatch = fullText.match(
+    /(?:frame\s*size|size)?[:\s-]*(\d{2})\s*[-–—/□\[\]\s]\s*(\d{2})\s*[-–—/□\[\]\s]\s*(\d{3})/i
+  );
+  if (tripletMatch) {
+    const l = parseInt(tripletMatch[1], 10);
+    const b = parseInt(tripletMatch[2], 10);
+    const t = parseInt(tripletMatch[3], 10);
+    if (!isNaN(l)) lens = l;
+    if (!isNaN(b)) bridge = b;
+    if (!isNaN(t)) temple = t;
+  }
+
+  // 3. Try matching specific individual measurements in text
+  // e.g. "Lens width: 49 mm", "Bridge width: 18 mm", "Temple length: 143 mm", "Frame width: 135 mm"
+  const lensMatch = fullText.match(/(?:lens\s*width|eye\s*size|lens\s*size|lens)[:\s-]+(\d{2})\s*(?:mm)?/i);
+  if (lensMatch) {
+    const l = parseInt(lensMatch[1], 10);
+    if (!isNaN(l)) lens = l;
+  }
+
+  const bridgeMatch = fullText.match(/(?:bridge\s*width|bridge\s*size|bridge|dbl)[:\s-]+(\d{2})\s*(?:mm)?/i);
+  if (bridgeMatch) {
+    const b = parseInt(bridgeMatch[1], 10);
+    if (!isNaN(b)) bridge = b;
+  }
+
+  const templeMatch = fullText.match(/(?:temple\s*length|temple\s*size|temple|arm\s*length|arm)[:\s-]+(\d{3})\s*(?:mm)?/i);
+  if (templeMatch) {
+    const t = parseInt(templeMatch[1], 10);
+    if (!isNaN(t)) temple = t;
+  }
+
+  const frameWidthMatch = fullText.match(/(?:frame\s*width|total\s*width)[:\s-]+(\d{3})\s*(?:mm)?/i);
+  if (frameWidthMatch) {
+    const fw = parseInt(frameWidthMatch[1], 10);
+    if (!isNaN(fw)) frameWidth = fw;
+  }
+
+  // 4. Check optical metafields if not found from description
   const meta = product.optical ?? {};
-  let lens = meta["lens_width"] || meta["eye_size"] || meta["lensWidth"];
-  let bridge = meta["bridge_width"] || meta["bridge"] || meta["bridgeWidth"];
-  let temple = meta["temple_length"] || meta["temple"] || meta["templeLength"];
-
-  // Check tags
-  const tags = product.tags ?? [];
-  for (const tag of tags) {
-    const sizeMatch = tag.match(/(?:size:)?(\d{2})[-/](\d{2})[-/](\d{3})/i);
-    if (sizeMatch) {
-      if (!lens) lens = sizeMatch[1];
-      if (!bridge) bridge = sizeMatch[2];
-      if (!temple) temple = sizeMatch[3];
-      break;
-    }
-    const lMatch = tag.match(/lens[:-]?(\d{2})/i);
-    if (lMatch && !lens) lens = lMatch[1];
-    const bMatch = tag.match(/bridge[:-]?(\d{2})/i);
-    if (bMatch && !bridge) bridge = bMatch[1];
-    const tMatch = tag.match(/temple[:-]?(\d{3})/i);
-    if (tMatch && !temple) temple = tMatch[1];
+  if (!lens && (meta["lens_width"] || meta["eye_size"] || meta["lensWidth"])) {
+    const parsed = parseInt(String(meta["lens_width"] || meta["eye_size"] || meta["lensWidth"]), 10);
+    if (!isNaN(parsed)) lens = parsed;
+  }
+  if (!bridge && (meta["bridge_width"] || meta["bridge"] || meta["bridgeWidth"])) {
+    const parsed = parseInt(String(meta["bridge_width"] || meta["bridge"] || meta["bridgeWidth"]), 10);
+    if (!isNaN(parsed)) bridge = parsed;
+  }
+  if (!temple && (meta["temple_length"] || meta["temple"] || meta["templeLength"])) {
+    const parsed = parseInt(String(meta["temple_length"] || meta["temple"] || meta["templeLength"]), 10);
+    if (!isNaN(parsed)) temple = parsed;
   }
 
-  // Check title, SKU, description
-  if (!lens || !bridge || !temple) {
-    const textToSearch = `${product.title} ${product.variants?.edges?.[0]?.node?.sku ?? ""} ${product.description ?? ""}`;
-    const textMatch = textToSearch.match(/(\d{2})\s*[-/□\[\]]\s*(\d{2})\s*[-/□\[\]\s]\s*(\d{3})/i);
-    if (textMatch) {
-      if (!lens) lens = textMatch[1];
-      if (!bridge) bridge = textMatch[2];
-      if (!temple) temple = textMatch[3];
-    }
-  }
+  // 5. Fallback based on category
+  const finalLens = lens && !isNaN(lens) ? lens : (category === "kids" ? 44 : 50);
+  const finalBridge = bridge && !isNaN(bridge) ? bridge : (category === "kids" ? 16 : 19);
+  const finalTemple = temple && !isNaN(temple) ? temple : (category === "kids" ? 125 : 142);
+  const totalWidth = frameWidth && !isNaN(frameWidth) ? frameWidth : finalLens * 2 + finalBridge;
 
-  // Sensible default fallback based on category
-  const finalLens = lens ? parseInt(String(lens), 10) : (category === "kids" ? 44 : 50);
-  const finalBridge = bridge ? parseInt(String(bridge), 10) : (category === "kids" ? 16 : 19);
-  const finalTemple = temple ? parseInt(String(temple), 10) : (category === "kids" ? 125 : 142);
-
-  const totalWidth = finalLens * 2 + finalBridge;
   let sizeLabel = "Medium";
-  if (totalWidth < 128) sizeLabel = "Small";
+  if (totalWidth < 130) sizeLabel = "Narrow";
   else if (totalWidth > 138) sizeLabel = "Wide";
 
   return {
