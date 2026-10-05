@@ -9,6 +9,22 @@
       "DANGEROUSLY_DEPLOY_VULNERABLE_TANSTACK_START_XSS": "1"
     }
   },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(self), microphone=(), geolocation=(self), payment=(self), usb=(), magnetometer=(), gyroscope=(), accelerometer=()" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-site" },
+        { "key": "X-DNS-Prefetch-Control", "value": "on" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://*.myshopify.com https://shop.app https://api.razorpay.com https://*.razorpay.com https://securegw-stage.paytm.in https://securegw.paytm.in; img-src 'self' data: blob: https://cdn.shopify.com https://img.logo.dev https://*.googleusercontent.com https://*.gstatic.com https://*.razorpay.com; font-src 'self' data: https://fonts.gstatic.com https://*.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com https://checkout.razorpay.com https://*.razorpay.com; connect-src 'self' https://*.supabase.co https://*.myshopify.com https://cdn.shopify.com https://img.logo.dev https://api.postalpincode.in https://*.razorpay.com https://lumberjack.razorpay.com https://*.lovable.dev https://*.lovable.app wss:; frame-src 'self' https://www.google.com https://www.google.co.in https://maps.google.com https://api.razorpay.com https://*.razorpay.com; media-src 'self' https://cdn.shopify.com; worker-src 'self' blob:; upgrade-insecure-requests" }
+      ]
+    }
+  ],
   "git": {
     "deploymentEnabled": true
   }
