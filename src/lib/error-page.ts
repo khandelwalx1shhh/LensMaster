@@ -1,6 +1,18 @@
 export function renderErrorPage(error?: unknown): string {
-  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
-  const isDev = process.env.NODE_ENV !== "production";
+  let message = "";
+  if (error instanceof Error) {
+    message = error.stack || `${error.name}: ${error.message}`;
+  } else if (typeof error === "string") {
+    message = error;
+  } else if (error != null) {
+    try {
+      message = JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+    } catch {
+      message = String(error);
+    }
+  } else {
+    message = "Unknown Server Error (500)";
+  }
 
   return `<!doctype html>
 <html lang="en">
