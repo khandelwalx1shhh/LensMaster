@@ -32,6 +32,16 @@ export function db(): AnyClient {
   return createServiceClient();
 }
 
+/**
+ * Like db() but throws AdminAuthError("UNAUTHORIZED") when the service client
+ * cannot be created. Use inside functions where a DB connection is mandatory.
+ */
+function requireDb(): NonNullable<AnyClient> {
+  const client = createServiceClient();
+  if (!client) throw new Error("[admin-security] Supabase service client unavailable — check SUPABASE_SERVICE_ROLE_KEY / SUPABASE_URL env vars.");
+  return client;
+}
+
 /* ------------------------------------------------------------------ crypto */
 
 const enc = new TextEncoder();
@@ -244,6 +254,9 @@ export async function recentFailures(emailNormalized: string | null): Promise<{
   byIp: number;
 }> {
   const client = db();
+  // If the DB client is unavailable, treat as no failures so the login flow
+  // degrades gracefully rather than crashing.
+  if (!client) return { byAccount: 0, byIp: 0 };
   const since = windowStart();
   const ip = requestIp();
   const [acct, byIp] = await Promise.all([
@@ -522,7 +535,39 @@ export async function requireAdmin(permission?: Permission): Promise<AdminSessio
 
 /** CSRF double-submit check for state-changing operations. */
 export async function requireCsrf(ctx: AdminSessionContext, csrfToken: string): Promise<void> {
-  const { data } = await db()
+  // Primary check: compare against the CSRF token stored in the signed session
+  // cookie (ctx.csrfToken). This works even without a live DB connection.
+  if (ctx.csrfToken) {
+    if (!timingSafeEqualHex(csrfToken || "", ctx.csrfToken)) {
+      await logSecurityEvent({
+        adminUserId: ctx.userId,
+        actorEmail: ctx.email,
+        event: "csrf.rejected",
+        result: "denied",
+        severity: "warning",
+      });
+      throw new AdminAuthError("FORBIDDEN");
+    }
+    return;
+  }
+
+  // Fallback: DB-level CSRF hash lookup (only reachable for legacy sessions
+  // that pre-date the signed-cookie approach).
+  const client = db();
+  if (!client) {
+    // No DB and no cookie CSRF token — fail closed.
+    await logSecurityEvent({
+      adminUserId: ctx.userId,
+      actorEmail: ctx.email,
+      event: "csrf.rejected",
+      result: "denied",
+      severity: "warning",
+      metadata: { reason: "db_unavailable" },
+    });
+    throw new AdminAuthError("FORBIDDEN");
+  }
+
+  const { data } = await client
     .from("admin_sessions")
     .select("csrf_token_hash")
     .eq("id", ctx.sessionId)
@@ -597,6 +642,10 @@ export async function ensureBootstrapAdmin(): Promise<void> {
   if (!email || !password) return;
 
   const client = db();
+  if (!client) {
+    console.warn("[admin-security] ensureBootstrapAdmin: Supabase service client unavailable, skipping bootstrap.");
+    return;
+  }
   const { count } = await client
     .from("admin_users")
     .select("id", { count: "exact", head: true });

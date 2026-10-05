@@ -27,42 +27,75 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-
-function createSupabaseClient() {
+function createSupabaseClient(): ReturnType<typeof createClient<Database>> | null {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
+  const SUPABASE_URL =
+    (typeof import.meta !== 'undefined' ? import.meta.env?.['VITE_SUPABASE_URL'] : undefined) ||
+    (typeof process !== 'undefined' ? process.env?.['SUPABASE_URL'] : undefined) ||
+    (typeof process !== 'undefined' ? process.env?.['VITE_SUPABASE_URL'] : undefined);
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    (typeof import.meta !== 'undefined' ? import.meta.env?.['VITE_SUPABASE_PUBLISHABLE_KEY'] : undefined) ||
+    (typeof process !== 'undefined' ? process.env?.['SUPABASE_PUBLISHABLE_KEY'] : undefined) ||
+    (typeof process !== 'undefined' ? process.env?.['VITE_SUPABASE_PUBLISHABLE_KEY'] : undefined);
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
-      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
+      ...(!SUPABASE_URL ? ['SUPABASE_URL / VITE_SUPABASE_URL'] : []),
+      ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY / VITE_SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    // Log but NEVER throw — throwing here crashes every SSR request.
+    console.warn(`[Supabase] Missing env var(s): ${missing.join(', ')}. Supabase auth will be unavailable.`);
+    return null;
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    global: {
-      fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
-    },
-    auth: {
-      storage: brokeredPreviewStorage(),
-      persistSession: true,
-      autoRefreshToken: true,
-    }
+  try {
+    return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      global: {
+        fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
+      },
+      auth: {
+        storage: typeof window !== 'undefined' ? brokeredPreviewStorage() : undefined,
+        persistSession: typeof window !== 'undefined',
+        autoRefreshToken: typeof window !== 'undefined',
+      }
+    });
+  } catch (err) {
+    console.warn('[Supabase] Failed to initialise client:', err);
+    return null;
+  }
+}
+
+let _supabase: ReturnType<typeof createClient<Database>> | null | undefined;
+
+/**
+ * Lazy singleton Supabase browser client.
+ * Returns null when Supabase env vars are not configured (e.g. during SSR
+ * without credentials). Always null-check before use.
+ */
+export function getSupabase(): ReturnType<typeof createClient<Database>> | null {
+  if (_supabase === undefined) _supabase = createSupabaseClient();
+  return _supabase;
+}
+
+// Proxy-based export kept for backwards compatibility with existing imports.
+// When the client is null (missing env vars), every property access returns
+// a no-op function so callers don't throw on SSR.
+function makeNoop(): any {
+  const noop: any = () => Promise.resolve({ data: null, error: new Error('Supabase not configured') });
+  return new Proxy(noop, {
+    get: () => makeNoop(),
+    apply: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
   });
 }
 
-let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
-
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
-export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>, {
+export const supabase = new Proxy({} as ReturnType<typeof createClient<Database>>, {
   get(_, prop, receiver) {
-    if (!_supabase) _supabase = createSupabaseClient();
+    if (_supabase === undefined) _supabase = createSupabaseClient();
+    if (!_supabase) return makeNoop();
     return Reflect.get(_supabase, prop, receiver);
   },
 });
