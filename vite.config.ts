@@ -8,11 +8,6 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
 export default defineConfig({
-  tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
-  },
   // Target Vercel for self-hosting. This `preset` is only honored when building
   // outside the Lovable sandbox (e.g. on Vercel); inside Lovable the build is
   // forced to cloudflare-module, so the Lovable preview/publish is unaffected.
