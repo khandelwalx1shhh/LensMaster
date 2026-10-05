@@ -40,8 +40,6 @@ function useDesktopNavActive() {
   }, [pathname, category]);
 }
 
-import { BrandLogo } from "./BrandLogo";
-
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -79,12 +77,9 @@ export function Header() {
             {menuOpen ? <X className="h-[20px] w-[20px]" /> : <Menu className="h-[20px] w-[20px]" />}
           </button>
 
-          <Link to="/" onClick={() => setMenuOpen(false)} className="flex items-center gap-2.5 justify-self-center lg:justify-self-start group">
-            <BrandLogo className="h-7 w-7 sm:h-8 sm:w-8 transition group-hover:scale-105 shrink-0" />
-            <div className="flex items-baseline gap-1">
-              <span className="font-display text-lg sm:text-xl font-semibold tracking-tight">LENS</span>
-              <span className="font-display text-lg sm:text-xl font-light tracking-[0.2em] text-muted-foreground">MASTER</span>
-            </div>
+          <Link to="/" onClick={() => setMenuOpen(false)} className="flex items-baseline gap-1 justify-self-center lg:justify-self-start">
+            <span className="font-display text-lg sm:text-xl font-semibold tracking-tight">LENS</span>
+            <span className="font-display text-lg sm:text-xl font-light tracking-[0.2em] text-muted-foreground">MASTER</span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8 justify-self-center col-start-2">

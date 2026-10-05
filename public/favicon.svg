@@ -1,84 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
-  <defs>
-    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F3E5AB" />
-      <stop offset="30%" stop-color="#D4AF37" />
-      <stop offset="70%" stop-color="#AA7C11" />
-      <stop offset="100%" stop-color="#E5C158" />
-    </linearGradient>
-    <linearGradient id="gold-glow" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#D4AF37" />
-      <stop offset="50%" stop-color="#FFF3C4" />
-      <stop offset="100%" stop-color="#C59B27" />
-    </linearGradient>
-    <radialGradient id="bg-grad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#1A1813" />
-      <stop offset="85%" stop-color="#0B0B09" />
-      <stop offset="100%" stop-color="#050505" />
-    </radialGradient>
-  </defs>
-
-  <!-- Circular Base -->
-  <circle cx="60" cy="60" r="58" fill="url(#bg-grad)" />
-
-  <!-- Outer & Inner Gold Rings -->
-  <circle cx="60" cy="60" r="54" fill="none" stroke="url(#gold-grad)" stroke-width="2.5" />
-  <circle cx="60" cy="60" r="50.5" fill="none" stroke="url(#gold-grad)" stroke-width="0.8" opacity="0.6" />
-
-  <!-- Monogram LM -->
-  <g transform="translate(60, 60)">
-    <!-- Letter L (Left) -->
-    <!-- L Vertical Stem -->
-    <path
-      d="M -30 -26 
-         L -21 -26
-         C -21 -26, -21 -18, -21 -14
-         L -21 17
-         C -21 21, -21 21, -16 21
-         L -6 21
-         L -6 27
-         L -32 27
-         L -32 21
-         C -27 21, -27 21, -27 17
-         L -27 -20
-         C -27 -24, -27 -24, -30 -26
-         Z"
-      fill="url(#gold-glow)"
-    />
-
-    <!-- Letter M (Right & Intersecting) -->
-    <path
-      d="M -12 -26
-         L -2 -26
-         C -2 -24, -2 -24, -2 -20
-         L -2 8
-         L 11 -26
-         L 19 -26
-         L 32 8
-         L 32 -20
-         C 32 -24, 32 -24, 29 -26
-         L 39 -26
-         L 39 -20
-         C 36 -20, 36 -20, 36 -16
-         L 36 21
-         C 36 25, 36 25, 39 27
-         L 28 27
-         L 28 21
-         C 31 21, 31 21, 31 17
-         L 31 -3
-         L 16 27
-         L 13 27
-         L -2 -3
-         L -2 17
-         C -2 21, -2 21, 1 21
-         L 1 27
-         L -12 27
-         L -12 21
-         C -9 21, -9 21, -9 17
-         L -9 -20
-         C -9 -24, -9 -24, -12 -26
-         Z"
-      fill="url(#gold-grad)"
-    />
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#111111" />
+  <text
+    x="50%"
+    y="52%"
+    text-anchor="middle"
+    dominant-baseline="central"
+    font-family="system-ui, -apple-system, 'SF Pro Display', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    font-size="28"
+    font-weight="700"
+    letter-spacing="-0.5px"
+    fill="#FFFFFF"
+  >LM</text>
 </svg>
