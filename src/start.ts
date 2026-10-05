@@ -31,15 +31,23 @@ const SECURITY_HEADERS: Record<string, string> = {
 };
 
 function withSecurityHeaders(response: Response): Response {
-  const headers = new Headers(response.headers);
+  // IMPORTANT: Do NOT re-wrap the response body via `new Response(response.body, ...)`.
+  // TanStack Start SSR uses a ReadableStream body. Re-wrapping it transfers the
+  // underlying byte stream to a new Response, which breaks streaming in Vercel's
+  // serverless/edge runtime and results in a blank white page (200 with empty body).
+  //
+  // Instead, append headers directly onto the existing Response object's headers.
+  // Response.headers is mutable via .set() and .append() even after construction.
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-    if (!headers.has(key)) headers.set(key, value);
+    if (!response.headers.has(key)) {
+      try {
+        response.headers.set(key, value);
+      } catch {
+        // In some runtimes Response.headers may be read-only; skip gracefully.
+      }
+    }
   }
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+  return response;
 }
 
 const requestMiddleware = createMiddleware().server(async ({ next }) => {
