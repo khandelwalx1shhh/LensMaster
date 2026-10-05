@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Instagram, Facebook, MapPin, Phone, Mail } from "lucide-react";
+import { BrandLogo } from "./BrandLogo";
 
 export function Footer() {
   return (
@@ -7,14 +8,17 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 py-8 sm:py-12">
         <div className="grid gap-x-6 gap-y-6 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
           <div className="col-span-2 lg:col-span-2">
-            <div className="flex items-baseline gap-1">
-              <span className="font-display text-base sm:text-xl font-semibold">LENS</span>
-              <span className="font-display text-base sm:text-xl font-light tracking-[0.18em] text-background/60">
-                MASTER
-              </span>
+            <div className="flex items-center gap-2.5">
+              <BrandLogo className="h-7 w-7 sm:h-8 sm:w-8 shrink-0" />
+              <div className="flex items-baseline gap-1">
+                <span className="font-display text-base sm:text-xl font-semibold">LENS</span>
+                <span className="font-display text-base sm:text-xl font-light tracking-[0.18em] text-background/60">
+                  MASTER
+                </span>
+              </div>
             </div>
             <p className="mt-2 max-w-xs text-[11px] sm:text-xs text-background/60 leading-relaxed">
-              Premium frames. Precision lenses. Jaipur's flagship luxury optical store since 2023.
+              Premium frames. Precision lenses. Jaipur's flagship optical store since 2023.
             </p>
             <div className="mt-3 space-y-1.5 text-[11px] sm:text-xs text-background/70">
               <div className="flex items-start gap-1.5">

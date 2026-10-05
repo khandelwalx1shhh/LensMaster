@@ -40,7 +40,7 @@ export const Route = createFileRoute("/shop")({
 
     let title = "Shop Eyewear Online — Frames, Sunglasses & Blue Cut | Lens Master";
     let description =
-      "Browse premium prescription frames, sunglasses, blue cut glasses, and contact lenses. Free lens fitting & fast delivery from Jaipur's #1 rated optical store.";
+      "Browse premium prescription frames, sunglasses, blue cut glasses, and contact lenses. Free lens fitting & fast delivery across India from Lens Master Jaipur.";
     let canonicalPath = "/shop";
 
     if (isBlueCut) {

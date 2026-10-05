@@ -69,7 +69,7 @@ export function generateLocalBusinessSchema() {
     name: BRAND_LEGAL_NAME,
     alternateName: ["Lens Master", "Lens Master Jaipur", "The Swadesh Eyewear"],
     description:
-      "Jaipur's flagship luxury optical store since 2023. Premium prescription glasses, designer sunglasses (Ray-Ban, Gucci, Oakley, Prada), blue cut lenses and precision computerized eye testing in Lalkothi, Jaipur.",
+      "Top-rated optical store and eyewear destination in Jaipur since 2023. Premium prescription glasses, designer sunglasses (Ray-Ban, Gucci, Oakley, Prada), blue cut lenses and precision computerized eye testing in Lalkothi, Jaipur.",
     url: SITE_URL,
     logo: DEFAULT_OG_IMAGE,
     image: [DEFAULT_OG_IMAGE, `${SITE_URL}/favicon.ico`],

@@ -137,7 +137,7 @@ const FAQS = [
 export const Route = createFileRoute("/lens-master-jaipur")({
   head: () => {
     const canonical = absoluteUrl("/lens-master-jaipur");
-    const title = "Lens Master Jaipur — Best Luxury Optical Store in Lalkothi (4.9★)";
+    const title = "Lens Master Jaipur — Best Optical Store & Eyewear Shop in Lalkothi";
     const description =
       "Lens Master by The Swadesh: Jaipur's flagship optical store at B-51 Lal Kothi Shopping Centre. 4.9★ on Google (700+ reviews). Free eye checkup, 1-hour fitting, Ray-Ban, Gucci & Blue Cut glasses.";
 
@@ -575,7 +575,7 @@ function LensMasterJaipurPage() {
           </div>
           <h2 className="font-display text-2xl sm:text-4xl font-light">4.9★ from 700+ Google Reviews</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            See why customers rank Lens Master as the #1 optical shop in Jaipur.
+            See why customers rate Lens Master 4.9★ as their preferred optical shop in Jaipur.
           </p>
         </div>
 

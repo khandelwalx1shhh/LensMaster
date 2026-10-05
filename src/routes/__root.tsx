@@ -133,7 +133,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta,
       links: [
         { rel: "stylesheet", href: appCss },
-        { rel: "icon", href: "/favicon.ico?v=2", type: "image/x-icon" },
+        { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+        { rel: "icon", href: "/favicon.ico?v=3", type: "image/x-icon" },
+        { rel: "apple-touch-icon", href: "/favicon.svg" },
         { rel: "preconnect", href: "https://cdn.shopify.com", crossOrigin: "anonymous" },
         { rel: "dns-prefetch", href: "https://cdn.shopify.com" },
         { rel: "preconnect", href: "https://img.logo.dev", crossOrigin: "anonymous" },

@@ -25,16 +25,16 @@ export const Route = createFileRoute("/")({
     const canonical = absoluteUrl("/");
     return {
       meta: [
-        { title: "Lens Master — Jaipur's #1 Luxury Optical Store & Eyewear Destination" },
+        { title: "Lens Master — Premium Eyewear & Optical Store in Jaipur" },
         {
           name: "description",
           content:
-            "Shop premium designer frames, eyeglasses, sunglasses, and blue cut glasses in Jaipur from Ray-Ban, Gucci, Oakley, Prada. Computerized eye testing & precision lens fitting in Lalkothi.",
+            "Lens Master is Jaipur's trusted optical destination for designer eyeglasses, sunglasses, blue cut lenses & contact lenses. In-store computerized eye testing & 1-hour fitting in Lalkothi.",
         },
         { property: "og:title", content: "Lens Master — Premium Eyewear & Optical Store in Jaipur" },
         {
           property: "og:description",
-          content: "Ray-Ban, Gucci, Oakley, Prada, Blue Cut glasses & precision lenses fitted in-store. 4.9★ on Google.",
+          content: "Designer eyewear, Ray-Ban, Gucci, Oakley, Prada, Blue Cut glasses & precision lenses fitted in Jaipur. 4.9★ on Google.",
         },
         { property: "og:url", content: canonical },
         { property: "og:type", content: "website" },

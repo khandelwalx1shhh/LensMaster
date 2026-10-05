@@ -145,7 +145,7 @@ function OpticiansJaipurPage() {
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-background/20 bg-background/10 px-3.5 py-1 text-xs font-medium backdrop-blur-sm text-gold">
             <Award className="h-3.5 w-3.5" />
-            Jaipur's #1 Rated Optical Store · 4.9★ on Google
+            Top Rated Optical Store in Jaipur · 4.9★ on Google
           </div>
 
           <h1 className="mt-5 font-display text-3xl sm:text-5xl md:text-6xl font-light tracking-tight leading-[1.08]">
