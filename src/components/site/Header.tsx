@@ -18,8 +18,8 @@ const nav: Array<{ label: string; to: string; search?: Record<string, string> }>
 
 function useDesktopNavActive() {
   const { pathname, search } = useLocation();
-  const params = new URLSearchParams(search as unknown as string);
-  const category = params.get("category");
+  const category = (search as Record<string, unknown> | undefined)?.category ??
+    (typeof search === "string" ? new URLSearchParams(search).get("category") : null);
 
   return useMemo(() => {
     const active = (label: string) => {
