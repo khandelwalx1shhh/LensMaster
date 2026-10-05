@@ -78,9 +78,11 @@ export function ShopFilters({ filters, onChange }: Props) {
 
   const brands = useMemo(() => {
     const set = new Set<string>();
-    for (const p of allProducts) {
-      const v = (p.node.vendor ?? "").trim();
-      if (v && !isHouseBrand(v)) set.add(v);
+    if (Array.isArray(allProducts)) {
+      for (const p of allProducts) {
+        const v = (p?.node?.vendor ?? "").trim();
+        if (v && !isHouseBrand(v)) set.add(v);
+      }
     }
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [allProducts]);
@@ -261,14 +263,17 @@ export function applyFilters(
   f: Filters,
   options?: { excludeHouseBrands?: boolean },
 ): ShopifyProduct[] {
+  if (!Array.isArray(products)) return [];
   const filtered = products.filter((p) => {
+    if (!p || !p.node) return false;
     if (options?.excludeHouseBrands && isHouseBrand(p.node.vendor)) {
       return false;
     }
-    const hay = `${p.node.title} ${p.node.productType ?? ""} ${p.node.vendor ?? ""} ${p.node.tags.join(" ")}`.toLowerCase();
+    const tags = Array.isArray(p.node.tags) ? p.node.tags.join(" ") : "";
+    const hay = `${p.node.title ?? ""} ${p.node.productType ?? ""} ${p.node.vendor ?? ""} ${tags}`.toLowerCase();
     if (f.category) {
       const match = CATEGORY_MATCHERS[f.category];
-      if (!match(hay)) return false;
+      if (!match || !match(hay)) return false;
     }
     if (f.brand && (p.node.vendor ?? "").toLowerCase() !== f.brand.toLowerCase()) return false;
     if (f.lensType) {
@@ -280,13 +285,17 @@ export function applyFilters(
     if (f.gender && !hay.includes(f.gender.toLowerCase())) return false;
 
     if (f.priceMax > 0) {
-      const price = parseFloat(p.node.priceRange.minVariantPrice.amount);
+      const amount = p.node.priceRange?.minVariantPrice?.amount;
+      const price = amount ? parseFloat(amount) : 0;
       if (price > f.priceMax) return false;
     }
     return true;
   });
 
-  const priceOf = (p: ShopifyProduct) => parseFloat(p.node.priceRange.minVariantPrice.amount);
+  const priceOf = (p: ShopifyProduct) => {
+    const amount = p.node?.priceRange?.minVariantPrice?.amount;
+    return amount ? parseFloat(amount) : 0;
+  };
   const sorted = [...filtered];
   switch (f.sort) {
     case "price-asc":
@@ -296,10 +305,10 @@ export function applyFilters(
       sorted.sort((a, b) => priceOf(b) - priceOf(a));
       break;
     case "name-asc":
-      sorted.sort((a, b) => a.node.title.localeCompare(b.node.title));
+      sorted.sort((a, b) => (a.node?.title ?? "").localeCompare(b.node?.title ?? ""));
       break;
     case "name-desc":
-      sorted.sort((a, b) => b.node.title.localeCompare(a.node.title));
+      sorted.sort((a, b) => (b.node?.title ?? "").localeCompare(a.node?.title ?? ""));
       break;
     default:
       break;

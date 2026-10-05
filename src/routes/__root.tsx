@@ -49,6 +49,8 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
+  const isDev = typeof process !== "undefined" ? process.env.NODE_ENV !== "production" : true;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -56,6 +58,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
+        {error?.message && (isDev || typeof window !== "undefined") && (
+          <div className="mt-4 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-left font-mono text-xs text-destructive break-words">
+            {error.message}
+          </div>
+        )}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {

@@ -19,14 +19,14 @@ export function ProductCard({ product }: { product: ShopifyProduct }) {
   const [adding, setAdding] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   // First sellable variant, so the card reflects live Shopify availability.
-  const variant = p.variants.edges.find((e) => e.node.availableForSale)?.node ?? p.variants.edges[0]?.node;
-  const img = p.images.edges[0]?.node;
-  const img2 = p.images.edges[1]?.node ?? img;
+  const variant = p?.variants?.edges?.find((e) => e.node?.availableForSale)?.node ?? p?.variants?.edges?.[0]?.node;
+  const img = p?.images?.edges?.[0]?.node;
+  const img2 = p?.images?.edges?.[1]?.node ?? img;
   const category = getProductCategory(p);
   const needsDialog = !!getLensOptions(category) || requiresPrescription(category);
   const sellable = !!variant?.availableForSale;
-  const compareAt = variant?.compareAtPrice ?? p.compareAtPrice ?? null;
-  const price = variant?.price ?? p.priceRange.minVariantPrice;
+  const compareAt = variant?.compareAtPrice ?? p?.compareAtPrice ?? null;
+  const price = variant?.price ?? p?.priceRange?.minVariantPrice ?? { amount: "0", currencyCode: "INR" };
   const off = discountPercent(price, compareAt);
 
   const doAdd = async () => {

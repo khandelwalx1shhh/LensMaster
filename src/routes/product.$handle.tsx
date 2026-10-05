@@ -22,7 +22,13 @@ import { sanitizeHtml } from "@/lib/sanitize";
 import { absoluteUrl, generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/product/$handle")({
-  loader: ({ params }) => fetchProductByHandle(params.handle),
+  loader: async ({ params }) => {
+    try {
+      return await fetchProductByHandle(params.handle);
+    } catch {
+      return null;
+    }
+  },
   head: ({ loaderData, params }) => {
     const p = loaderData as {
       id?: string;
@@ -148,7 +154,7 @@ function ProductPage() {
   const addItem = useCartStore((s) => s.addItem);
 
   useEffect(() => {
-    if (product && !variantId) setVariantId(product.variants.edges[0]?.node.id ?? null);
+    if (product && !variantId) setVariantId(product.variants?.edges?.[0]?.node.id ?? null);
   }, [product, variantId]);
 
   if (isLoading) {
@@ -158,11 +164,22 @@ function ProductPage() {
       </div>
     );
   }
-  if (isError) throw new Error("Failed to load product");
-  if (!product) throw notFound();
+  if (isError || !product) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-6 text-center">
+        <h2 className="font-display text-3xl">Product not found</h2>
+        <p className="text-sm text-muted-foreground max-w-md">
+          This product may have been moved or is currently unavailable.
+        </p>
+        <Link to="/shop" className="rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-medium">
+          Back to shop
+        </Link>
+      </div>
+    );
+  }
 
-  const images: Array<{ url: string; altText: string | null }> = product.images.edges.map((e: { node: { url: string; altText: string | null } }) => e.node);
-  const variants: ShopifyVariant[] = product.variants.edges.map((e) => e.node);
+  const images: Array<{ url: string; altText: string | null }> = product.images?.edges?.map((e: { node: { url: string; altText: string | null } }) => e.node) ?? [];
+  const variants: ShopifyVariant[] = product.variants?.edges?.map((e) => e.node) ?? [];
   const current = variants.find((v) => v.id === variantId) ?? variants[0];
   const category = getProductCategory(product);
   const needsDialog = !!getLensOptions(category) || requiresPrescription(category);
