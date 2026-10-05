@@ -247,14 +247,36 @@ export function getProductCategory(node?: ShopifyProduct["node"] | null): Produc
 
   const type = (node.productType ?? "").toLowerCase();
   const tags = (node.tags ?? []).map((t) => t.toLowerCase());
-  const has = (needle: string) => type.includes(needle) || tags.includes(needle);
+  const title = (node.title ?? "").toLowerCase();
+  const hay = `${title} ${type} ${tags.join(" ")}`.toLowerCase();
+  const has = (needle: string) => hay.includes(needle.toLowerCase());
 
-  if (has("sunglass")) return "sunglasses";
-  if (type.includes("blue cut") || type.includes("blue-cut") || has("blue-cut-offer") || has("blue-cut") || has("blue-light") || type.includes("computer")) return "blue-cut";
-  if (has("contact") || has("contact-lens") || has("contacts")) return "contact-lens";
-  if (has("reading")) return "reading";
-  if (has("kids") || has("children")) return "kids";
-  if (type.includes("frame") || type.includes("optical") || type.includes("spectacle") || has("prescription")) return "prescription";
+  // Non-eyewear accessories
+  if (/\b(cloth|case|chain|cleaner|spray|drops|tweezer|solution|accessories|accessory)\b/.test(hay) && !has("contact")) {
+    return "other";
+  }
+
+  if (has("sunglass") || has("sun glass") || has("shades") || has("polarized")) return "sunglasses";
+  if (has("blue-cut-offer") || has("blue cut") || has("blue-cut") || has("blue-light") || has("blue light") || has("computer") || has("anti-glare") || has("screen glass")) return "blue-cut";
+  if (has("contact") || has("contact-lens") || has("contacts") || has("contact lens")) return "contact-lens";
+  if (has("reading") || has("reader") || has("bifocal") || has("presbyopia")) return "reading";
+  if (has("kids") || has("children") || has("child") || has("junior")) return "kids";
+  if (
+    has("frame") ||
+    has("optical") ||
+    has("spectacle") ||
+    has("prescription") ||
+    has("eyeglass") ||
+    has("glasses") ||
+    has("specs") ||
+    has("eyewear") ||
+    has("power") ||
+    type === "" || // Default empty type in optical store to prescription frame
+    type.includes("eyewear") ||
+    type.includes("glasses")
+  ) {
+    return "prescription";
+  }
   return "other";
 }
 
