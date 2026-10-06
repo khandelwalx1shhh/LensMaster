@@ -120,20 +120,38 @@ async function syncOrderToShopify(
   paymentId: string,
 ): Promise<void> {
   try {
-    const { data: order } = await supabase
+    const { data: order, error: orderErr } = await supabase
       .from("orders")
       .select(
-        "id, order_number, customer_name, customer_phone, customer_email, address_line1, address_line2, city, state, pincode, subtotal, delivery_fee, total, notes, order_items(id, title, variant_title, lens_type, price, quantity, prescription_id, prescriptions(*))",
+        "id, order_number, customer_name, customer_phone, customer_email, address_line1, address_line2, city, state, pincode, subtotal, delivery_fee, total, notes, order_items(id, title, variant_title, variant_id, lens_type, price, quantity, prescription_id)",
       )
       .eq("id", orderId)
       .maybeSingle();
 
-    if (!order) {
-      console.error("[shopify-sync] order not found", { orderId });
+    if (orderErr || !order) {
+      console.error("[shopify-sync] order fetch failed:", { orderId, error: orderErr });
       return;
     }
 
     const { createOrder } = await import("./shopify/orders.server");
+
+    // Fetch related prescriptions separately to prevent schema relationship errors
+    const rxIds = (order.order_items || [])
+      .map((i: any) => i.prescription_id)
+      .filter((id: any): id is string => Boolean(id));
+
+    let rxMap = new Map<string, any>();
+    if (rxIds.length > 0) {
+      const { data: rxRows, error: rxErr } = await supabase
+        .from("prescriptions")
+        .select("*")
+        .in("id", rxIds);
+      if (rxErr) {
+        console.warn("[shopify-sync] prescriptions fetch warning:", rxErr);
+      } else if (rxRows) {
+        rxMap = new Map(rxRows.map((rx) => [rx.id, rx]));
+      }
+    }
 
     const metafields: Array<{
       namespace: string;
@@ -141,8 +159,39 @@ async function syncOrderToShopify(
       value: string;
       type: string;
     }> = [];
-    order.order_items.forEach((item: any, idx: number) => {
+
+    const rxNoteLines: string[] = [];
+
+    (order.order_items || []).forEach((item: any, idx: number) => {
       if (item.prescription_id) {
+        const rx = rxMap.get(item.prescription_id);
+        if (rx) {
+          const rxSummary = [
+            `Item ${idx + 1} (${item.title || "Frame"}):`,
+            rx.product_type ? `Type: ${rx.product_type}` : null,
+            rx.right_sph != null || rx.right_cyl != null
+              ? `OD (Right): SPH ${rx.right_sph ?? "0.00"}, CYL ${rx.right_cyl ?? "0.00"}, AXIS ${rx.right_axis ?? "—"}, ADD ${rx.right_add ?? "—"}`
+              : null,
+            rx.left_sph != null || rx.left_cyl != null
+              ? `OS (Left): SPH ${rx.left_sph ?? "0.00"}, CYL ${rx.left_cyl ?? "0.00"}, AXIS ${rx.left_axis ?? "—"}, ADD ${rx.left_add ?? "—"}`
+              : null,
+            rx.pd ? `PD: ${rx.pd} mm` : null,
+            rx.notes ? `Notes: ${rx.notes}` : null,
+            rx.photo_url ? `Rx Photo: ${rx.photo_url}` : null,
+          ]
+            .filter(Boolean)
+            .join(" | ");
+
+          rxNoteLines.push(rxSummary);
+
+          metafields.push({
+            namespace: "lensmaster",
+            key: `rx_details_${idx + 1}`,
+            value: rxSummary,
+            type: "single_line_text_field",
+          });
+        }
+
         metafields.push({
           namespace: "lensmaster",
           key: `prescription_ref_${idx}`,
@@ -151,6 +200,7 @@ async function syncOrderToShopify(
         });
       }
     });
+
     metafields.push({
       namespace: "lensmaster",
       key: "order_id",
@@ -158,12 +208,22 @@ async function syncOrderToShopify(
       type: "single_line_text_field",
     });
 
+    const fullOrderNote = [
+      `Razorpay Order: ${razorpayOrderId}`,
+      `Razorpay Payment ID: ${paymentId}`,
+      `Lens Master Order #: ${order.order_number}`,
+      rxNoteLines.length > 0 ? `\n--- Prescription Details ---\n${rxNoteLines.join("\n")}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
     const shopifyOrder = await createOrder({
-      lineItems: order.order_items.map((item: any) => ({
+      lineItems: (order.order_items || []).map((item: any) => ({
         title: item.title,
         quantity: item.quantity,
         price: String(item.price),
-        variantTitle: item.variant_title || undefined,
+        variantTitle: item.variant_title || item.lens_type || undefined,
+        variantId: item.variant_id || undefined,
       })),
       customerName: order.customer_name,
       customerPhone: order.customer_phone,
@@ -176,8 +236,8 @@ async function syncOrderToShopify(
       total: String(order.total),
       subtotal: String(order.subtotal),
       deliveryFee: String(order.delivery_fee),
-      note: `Razorpay: ${razorpayOrderId} · Payment: ${paymentId} · Order: ${order.order_number}`,
-      tags: "online,razorpay",
+      note: fullOrderNote,
+      tags: "online, razorpay, verified-paid",
       metafields,
       idempotencyKey: String(order.id),
     });
@@ -188,7 +248,7 @@ async function syncOrderToShopify(
       .update({ shopify_order_id: shopifyOrder.id })
       .eq("id", orderId);
 
-    console.log("[shopify-sync] order created in Shopify", {
+    console.log("[shopify-sync] order successfully synced to Shopify:", {
       orderId,
       shopifyOrderId: shopifyOrder.id,
       shopifyOrderName: shopifyOrder.name,
@@ -217,7 +277,7 @@ async function syncOrderToShopify(
           price: Number(item.price),
           variant_title: item.variant_title,
           lens_type: item.lens_type,
-          prescription: item.prescriptions,
+          prescription: item.prescription_id ? rxMap.get(item.prescription_id) : undefined,
         })),
         paymentId,
         razorpayOrderId,

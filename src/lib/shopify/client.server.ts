@@ -116,7 +116,8 @@ export async function shopifyREST<T = unknown>(
   });
 
   if (!response.ok) {
-    console.error(`[shopify] REST ${method} request failed with HTTP ${response.status}`, { path });
+    const errorBody = await response.text().catch(() => "");
+    console.error(`[shopify] REST ${method} request failed with HTTP ${response.status}`, { path, errorBody });
     throw new ShopifyApiError("SHOPIFY_UNAVAILABLE");
   }
   return (await response.json()) as T;

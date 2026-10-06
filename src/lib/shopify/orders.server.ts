@@ -162,6 +162,17 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
     .filter(Boolean)
     .join(", ");
 
+  // Normalize phone for Indian numbers to satisfy Shopify E.164 requirements
+  const digitsOnly = (input.customerPhone || "").replace(/\D/g, "");
+  const formattedPhone =
+    digitsOnly.length === 10
+      ? `+91${digitsOnly}`
+      : input.customerPhone.startsWith("+")
+        ? input.customerPhone
+        : digitsOnly.length > 10
+          ? `+${digitsOnly}`
+          : undefined;
+
   const body = {
     order: {
       line_items: input.lineItems.map((li) => ({
@@ -174,30 +185,39 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
         taxable: false,
       })),
       customer: {
-        first_name: firstName || input.customerName,
-        last_name: lastName,
-        phone: input.customerPhone,
+        first_name: firstName || input.customerName || "Customer",
+        last_name: lastName || firstName || input.customerName || "Customer",
+        ...(formattedPhone ? { phone: formattedPhone } : {}),
         ...(input.customerEmail ? { email: input.customerEmail } : {}),
       },
       shipping_address: {
-        first_name: firstName || input.customerName,
-        last_name: lastName,
+        first_name: firstName || input.customerName || "Customer",
+        last_name: lastName || firstName || input.customerName || "Customer",
         address1: input.address1,
         address2: input.address2 || "",
         city: input.city,
         province: input.state,
         zip: input.pincode,
         country: "India",
-        phone: input.customerPhone,
+        ...(formattedPhone ? { phone: formattedPhone } : {}),
       },
-      shipping_lines: Number(input.deliveryFee) > 0
-        ? [{ title: "Delivery", price: input.deliveryFee, code: "STANDARD" }]
-        : [],
+      shipping_lines:
+        Number(input.deliveryFee) > 0
+          ? [{ title: "Standard Delivery", price: input.deliveryFee, code: "STANDARD" }]
+          : [],
       financial_status: "paid",
       fulfillment_status: null,
       tags,
       note: input.note || "",
       inventory_behaviour: "decrement_ignoring_policy",
+      transactions: [
+        {
+          kind: "sale",
+          status: "success",
+          amount: input.total,
+          gateway: "Razorpay",
+        },
+      ],
       metafields: input.metafields || [],
     },
   };
@@ -207,7 +227,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
     "/orders.json",
     body,
   );
-  console.info("[shopify] order created");
+  console.info("[shopify] order created successfully:", { id: data.order.id, name: data.order.name });
   return { id: String(data.order.id), name: data.order.name, orderNumber: data.order.order_number };
 }
 
